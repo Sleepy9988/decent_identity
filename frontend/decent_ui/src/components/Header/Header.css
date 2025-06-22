@@ -1,0 +1,36 @@
+/* General Header Styling */
+.app-header {
+  display: flex; /* Use Flexbox for easy alignment */
+  justify-content: space-between; /* Puts space between the main sections */
+  align-items: center; /* Vertically aligns all items in the center */
+  padding: 1rem 2rem; /* 1rem top/bottom, 2rem left/right padding */
+  background-color: #ffffff; /* A clean white background */
+  border-bottom: 1px solid #e0e0e0; /* A subtle bottom border */
+  color: #333;
+  position: sticky; /* Makes the header stick to the top on scroll */
+  top: 0;
+  z-index: 1000; /* Ensures the header stays above other content */
+}
+
+/* 1. Branding / Logo Styling */
+.logo-container a {
+  text-decoration: none;
+  color: #1a1a1a;
+  font-size: 1.5rem;
+  font-weight: 700;
+  /* You can add an img tag for a logo inside the <a> tag */
+}
+
+/* 2. Navigation Links Styling */
+.navigation-links {
+  display: flex;
+  gap: 1.5rem; /* Puts space between the links */
+}
+
+.navigation-links a {
+  text-decoration: none;
+  color: #555;
+  font-weight: 500;
+  position: relative;
+  transition: color 0.3s ease;
+}
