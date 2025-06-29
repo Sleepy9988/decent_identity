@@ -6,12 +6,12 @@ export default function Header() {
   return (
     <header className="app-header">
       <div className="logo-container">
-        {/* Your Logo and App Name */}
+        {/* Logo and App Name */}
         <a href="/">MyApp</a>
       </div>
       
       <nav className="navigation-links">
-        {/* Your Navigation Links */}
+        {/* Navigation Links */}
         <a href="/">Home</a>
       </nav>
     </header>
