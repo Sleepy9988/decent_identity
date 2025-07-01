@@ -19,6 +19,7 @@
     "@veramo/did-resolver": "^6.0.0",
     "@veramo/key-manager": "^6.0.0",
     "@veramo/kms-web3": "^6.0.0",
+    "ethr-did": "^3.0.38",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

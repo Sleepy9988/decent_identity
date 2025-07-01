@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { connectDIDwithProfile } from '../helper';
+import { connectWithMetaMask, anchorDid } from '../helper';
 
 const CreateIdentityButton = () => {
     const [did, setDID] = useState(null);
@@ -8,8 +8,16 @@ const CreateIdentityButton = () => {
   const handleCreateIdentity = async () => {
 
    try {
-        const did = await connectDIDwithProfile();
+        const did = await connectWithMetaMask();
         setDID(did);
+   } catch (err) {
+    console.error('Error creating DID:', err);
+   }
+  };
+
+  const writeToSepolia = async () => {
+   try {
+       anchorDid();
    } catch (err) {
     console.error('Error creating DID:', err);
    }
@@ -17,8 +25,9 @@ const CreateIdentityButton = () => {
 
   return (
     <div>
-        <button onClick={handleCreateIdentity}>Create New Digital Identity</button>
+        <button onClick={handleCreateIdentity}>Connect with Metamask</button>
         {did && <p>Your DID is: <strong>{did}</strong></p>}
+        <button onClick={writeToSepolia}>Anchor DID</button>
     </div>
     );
 };

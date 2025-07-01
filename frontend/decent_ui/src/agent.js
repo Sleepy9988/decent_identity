@@ -1,3 +1,4 @@
+// Import libraries and Veramo plugins
 import { createAgent} from '@veramo/core';
 import { KeyManager, MemoryKeyStore } from '@veramo/key-manager';
 import { DIDManager, MemoryDIDStore } from '@veramo/did-manager';
@@ -8,36 +9,45 @@ import { getResolver as ethrDidResolver } from 'ethr-did-resolver';
 import { Web3KeyManagementSystem } from '@veramo/kms-web3';
 import { CredentialIssuerEIP712 } from '@veramo/credential-eip712'
 
+// Infura Project ID - to get information from the Ethereum Sepolia blockchain
 const infuraProjectId = '6568670383cf484cb817256f0eea66b5'
 
+// Function to initialize and return Veramo agent
 export const createVeramoAgent = async (signer, provider, publicKeyHex) => {
+    // Create instance of the Web3 Key Management System using the Web3 browser provider
     const kms = new Web3KeyManagementSystem({web3: provider});
+    // get the wallet address
     const address = await signer.getAddress();
+    // get the Ethereum network name
     const networkName = (await signer.provider.getNetwork()).name;
-    
+    // Define DID provider key
     const didProviderKey = `did:ethr:${networkName}`;
-
+    // reference to the wallet
     const keyId = `web3-${address}`;
 
+    // Create Veramo agent with necessary plugins
     const agent = createAgent({
         plugins: [
+            // DID Resolver plugin to resolve DIDs 
             new DIDResolverPlugin({
                 ...ethrDidResolver({ 
                     networks: [
                         {
                            name: 'sepolia',
                            rpcUrl: 'https://sepolia.infura.io/v3/' + infuraProjectId  ,
-                           registry: '0x03d5003bf0e79C5F5223588F347ebA39AfbC3818'
+                           registry: '0x03d5003bf0e79C5F5223588F347ebA39AfbC3818' // Sepolia registry
                         },
                     ],
                 }),
             }),
+            // Key Manager Plugin to manage keys and offload signing to the Web3 wallet
             new KeyManager({
                 kms: {
                     web3: kms,
                 },
                 store: new MemoryKeyStore(),
             }),
+            // DID Manager Plugin to create and import DIDs
             new DIDManager({
                 store: new MemoryDIDStore(),
                 defaultProvider: didProviderKey,
@@ -51,13 +61,16 @@ export const createVeramoAgent = async (signer, provider, publicKeyHex) => {
                     }),
                 },
             }),
+            // Verifiable Credential Plugin to create and verify VCs
             new CredentialPlugin(),
+            // EIP-712 Credential Issuing Plugin to sign with Ethereum wallets
             new CredentialIssuerEIP712(), 
         ],
     })
-
+    // Define DID
     const did = `${didProviderKey}:${address}`;
     
+    // Import the public key from Web3 wallet
     await agent.keyManagerImport({
         kid: `web3-${address}`,
         type: 'Secp256k1',
@@ -68,7 +81,7 @@ export const createVeramoAgent = async (signer, provider, publicKeyHex) => {
         },
     });
     
-    
+    // Import DID to reference it with the key
     await agent.didManagerImport({
         did: did,
         provider: didProviderKey,
@@ -84,6 +97,6 @@ export const createVeramoAgent = async (signer, provider, publicKeyHex) => {
         }],
         
     });
-
+    // Return the agent instance
     return agent 
 };
