@@ -52,7 +52,8 @@ class UserRegistrationView(APIView):
             return Response({'error': 'Missing login challenge'}, status=status.HTTP_400_BAD_REQUEST)
         
         # URL of the Veramo backend agent 
-        veramo_service_url = 'http://localhost:3002/verify-presentation'
+        #veramo_service_url = 'http://localhost:3002/verify-presentation'
+        veramo_service_url = 'http://localhost:3003/verify-presentation'
 
         try: 
             logger.debug(f'Sending to Veramo: presentation={presentation}, challenge={challenge}')

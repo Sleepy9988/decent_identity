@@ -1,0 +1,24 @@
+{
+  "name": "veramo_backend_agent",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "node src/server.js"
+  },
+  "dependencies": {
+    "@veramo/core": "^6.0.0",
+    "@veramo/credential-eip712": "^6.0.0",
+    "@veramo/credential-w3c": "^6.0.0",
+    "@veramo/did-provider-ethr": "^6.0.0",
+    "@veramo/did-provider-key": "^6.0.0",
+    "@veramo/did-resolver": "^6.0.0",
+    "@veramo/remote-server": "^6.0.0",
+    "express": "^5.1.0",
+    "swagger-ui-express": "^5.0.1"
+  }
+}
