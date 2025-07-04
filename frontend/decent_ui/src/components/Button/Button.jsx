@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import './Button.css';
 import { connectWithMetaMask, anchorDid } from '../helper';
 
 const CreateIdentityButton = () => {
@@ -25,7 +26,7 @@ const CreateIdentityButton = () => {
 
   return (
     <div>
-        <button onClick={handleCreateIdentity}>Connect with Metamask</button>
+        <button className="button-primary" onClick={handleCreateIdentity}>Connect with MetaMask</button>
         {did && <p>Your DID is: <strong>{did}</strong></p>}
         <button onClick={writeToSepolia}>Anchor DID</button>
     </div>
