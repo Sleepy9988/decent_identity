@@ -1,5 +1,5 @@
 // Import libraries
-import { createVeramoAgent } from '../agent'; // frontend veramo agent
+import { createVeramoAgent, createResolver } from '../agent'; // frontend veramo agent
 import { ethers, hashMessage } from 'ethers'; // interactions with Ethereum
 import { recoverPublicKey } from '@ethersproject/signing-key';  // Obtain the public key of the wallet
 import { EthrDID } from 'ethr-did'; // Interactions with Ethereum DIDs
@@ -8,6 +8,8 @@ import { EthrDID } from 'ethr-did'; // Interactions with Ethereum DIDs
     Function to connect users via MetaMask wallet, generate VP, and send it 
     to the backend for verification
 */
+
+/*
 export const connectWithMetaMask = async () => {
     // ensure MetaMask browser extension is available
     if (!window.ethereum) throw new Error("MetaMask not found!");
@@ -34,6 +36,10 @@ export const connectWithMetaMask = async () => {
     // Create Veramo frontend agent, pass signer, provider and public key
     const agent = await createVeramoAgent(signer, provider, publicKeyHex); 
 
+    const isAnchored = await checkDidOnChain(agent, did);
+
+    console.log(isAnchored);
+
     // Request and extract challenge (nonce) from the backend (to prevent replay attacks)
     const challengeResponse = await fetch('http://localhost:8000/api/registration/challenge', {credentials: 'include'});
     const { challenge } = await challengeResponse.json();
@@ -51,6 +57,7 @@ export const connectWithMetaMask = async () => {
         proofFormat: 'EthereumEip712Signature2021',
     });
 */
+/*
     // Create Verifiable Presentation, sign with EIP-712
     const presentation = await agent.createVerifiablePresentation({
         presentation: {
@@ -82,6 +89,30 @@ export const connectWithMetaMask = async () => {
     // Store access token in localStorage
     localStorage.setItem('authToken', result.access);
 }
+
+*/
+
+
+export async function checkDidOnChain () {
+    const did = 'did:ethr:sepolia:0x954722291EFe083e37a6Fd2224ac436a95361550';
+    try {
+        const resolver = createResolver();
+        const result = await resolver.resolve(did);
+        const doc = result.didDocument;
+        console.log(result, doc)
+        if ( doc?.id ) {
+            console.log('DID is anchored and resolvable:', doc.id);
+            return true;
+        } else {
+            console.warn('DID Document has no ID');
+            return false;
+        }
+    } catch (err) {
+        console.warn('DID not anchored on chain:', err.message);
+        return false;
+    }
+}
+
 
 /*
     Function to anchor a DID on the Etherum Sepolia test chain
@@ -115,3 +146,95 @@ export async function anchorDid() {
 
     console.log('DID anchored with transaction:', tx.hash);
 }
+
+
+
+export const checkDIDProfile = async ({ signer, provider, publicKeyHex, address }) => {
+    // Get network, address and network name 
+    const network = await provider.getNetwork();
+    //const address = await signer.getAddress();
+    const networkName = network.name === 'homestead' ? 'mainnet' : network.name;
+
+    // Construct a DID based on network and address
+    const did = `did:ethr:${networkName}:${address}`;
+    console.log('DID: ', did);
+    const encodedDID = encodeURIComponent(did)
+
+    const checkDIDexists = await fetch(
+        `http://localhost:8000/api/did/${encodedDID}/exists`,
+        { credentials: 'include' }
+    );
+
+    const { exists } = await checkDIDexists.json();
+
+    console.log('DID profile exists?', exists);
+
+    if (exists) {
+        console.log('Profile linked to this DID already exists.');
+        return;
+    }
+
+    const agent = await createVeramoAgent(signer, provider, publicKeyHex);
+
+    // Request and extract challenge (nonce) from the backend (to prevent replay attacks)
+    const challengeResponse = await fetch(
+        'http://localhost:8000/api/registration/challenge', 
+        {credentials: 'include'});
+    
+    const { challenge } = await challengeResponse.json();
+    
+    // Create Verifiable Presentation, sign with EIP-712
+    const presentation = await agent.createVerifiablePresentation({
+        presentation: {
+            holder: did,
+            //verifiableCredential: [credential],
+        },
+        challenge,
+        proofFormat: 'EthereumEip712Signature2021',
+    });
+
+    // Send VP and challenge to the backend for verification and authentication
+    const createResponse = await fetch('http://localhost:8000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ presentation, challenge })
+    });
+
+    const result = await createResponse.json()
+
+    if (!createResponse.ok) {
+        throw new Error(result.error || 'Failed to create profile.');
+    }
+
+    console.log('Profile created and/or user logged in!', result);
+
+    // Store access token in localStorage
+    localStorage.setItem('authToken', result.access);
+
+    return did;
+}
+
+/*
+
+export const connectMetaMask = async () => {
+    // ensure MetaMask browser extension is available
+    if (!window.ethereum) throw new Error("MetaMask not found!");
+
+    // Initialize BrowserProvider object, connect to wallet and get signer
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    const signer = await provider.getSigner();
+    
+    // Extract the public key of the MetaMask wallet
+    const message = 'Public Key Extraction';
+    const signature = await signer.signMessage(message);
+    const digest = hashMessage(message);
+    const publicKey = recoverPublicKey(digest, signature);
+    const publicKeyHex = publicKey.slice(4);
+
+    await checkDIDProfile({ signer, provider, publicKeyHex });
+
+    console.log('MetaMask DID ensured!');
+} 
+*/

@@ -31,6 +31,12 @@ class LoginChallengeView(APIView):
 
         # Send challenge to the client
         return Response({'challenge': challenge}, status=status.HTTP_200_OK)
+    
+class DIDExistsView(APIView):
+    def get(self, request, *args, **kwargs):    
+        did = kwargs.get('did') 
+        exists = Profile.objects.filter(did=did).exists()
+        return Response({'exists': exists})
 
 # API POST endpoint to verify a Verifiable Presentation and register a new user
 @method_decorator(csrf_exempt, name='dispatch')

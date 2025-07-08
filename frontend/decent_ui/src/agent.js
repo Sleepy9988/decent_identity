@@ -1,13 +1,17 @@
 // Import libraries and Veramo plugins
 import { createAgent} from '@veramo/core';
-import { KeyManager, MemoryKeyStore } from '@veramo/key-manager';
+import { KeyManager, MemoryKeyStore, MemoryPrivateKeyStore} from '@veramo/key-manager';
 import { DIDManager, MemoryDIDStore } from '@veramo/did-manager';
 import { CredentialPlugin } from '@veramo/credential-w3c';
 import { DIDResolverPlugin } from '@veramo/did-resolver';
 import { EthrDIDProvider } from '@veramo/did-provider-ethr';
 import { getResolver as ethrDidResolver } from 'ethr-did-resolver';
 import { Web3KeyManagementSystem } from '@veramo/kms-web3';
-import { CredentialIssuerEIP712 } from '@veramo/credential-eip712'
+import { CredentialIssuerEIP712 } from '@veramo/credential-eip712';
+import { getResolver } from 'ethr-did-resolver';
+import { Resolver } from 'did-resolver';
+//import { KeyDIDProvider, getDidKeyResolver } from '@veramo/did-provider-key';
+//import { KeyManagementSystem } from '@veramo/kms-local';
 
 // Infura Project ID - to get information from the Ethereum Sepolia blockchain
 const infuraProjectId = '6568670383cf484cb817256f0eea66b5'
@@ -100,3 +104,44 @@ export const createVeramoAgent = async (signer, provider, publicKeyHex) => {
     // Return the agent instance
     return agent 
 };
+
+
+export const createResolver = () => {
+    const ethrDidResolver = getResolver({
+           networks: [
+               {
+                   name: 'sepolia',
+                   rpcUrl: 'https://sepolia.infura.io/v3/6568670383cf484cb817256f0eea66b5',
+                   registry: '0x03d5003bf0e79C5F5223588F347ebA39AfbC3818'
+               }
+           ]
+       });
+       const resolver = new Resolver(ethrDidResolver);
+    return resolver;
+}
+
+/*
+export const createKeyDidAgent = async () => {
+    const agent = createAgent({
+        plugins: [
+            new KeyManager({
+                store: new MemoryKeyStore(),
+                kms: {
+                    local: new KeyManagementSystem(new MemoryPrivateKeyStore()),
+                },
+            }),
+            new DIDManager({
+                store: new MemoryDIDStore(),
+                defaultProvider: 'did:key',
+                providers: {
+                    'did:key': new KeyDIDProvider({ defaultKms: 'local' }),
+                },
+            }),
+            new DIDResolverPlugin({
+                ...getDidKeyResolver(),
+            }),
+        ],
+    });
+    return agent;
+}
+*/
