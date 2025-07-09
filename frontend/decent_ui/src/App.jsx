@@ -13,30 +13,29 @@ function App() {
 
   const [did, setDid] = useState(null);
 
-  const loggedIn = isConnected && did;
+  //const loggedIn = isConnected && did;
  
   return (
     <div className='App'>
       <Header />
+      <div className="container">
         <main>
           <h1>Decentralized Identity & Profile Management</h1>
-          <div>
-            <DisconnectWeb3AuthButton/>
-          </div>
-          {loggedIn ? (
-            <div>
-              <p>Logged in as:</p>
-              <p style={{ wordBreak: 'break-all' }}><strong>{did}</strong></p>
-              
-            </div>
+          {!isConnected ? (
+            <ConnectWeb3AuthButton onDIDResolved={setDid} />
           ) : (
             <div>
-              <ConnectWeb3AuthButton onDIDResolved={setDid} />
+              <p>Logged in as:</p>
+              <p>
+                <strong>{did}</strong>
+              </p>
+              <DisconnectWeb3AuthButton/>
             </div>
           )}
           {connectLoading && <div>Connecting...</div>}
         </main>
-        <Footer/>
+        </div>
+      <Footer/>
     </div>
   );
 }
