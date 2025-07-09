@@ -40,7 +40,7 @@ class DIDExistsView(APIView):
 
 # API POST endpoint to verify a Verifiable Presentation and register a new user
 @method_decorator(csrf_exempt, name='dispatch')
-class UserRegistrationView(APIView):
+class UserAuthenticationnView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
@@ -86,15 +86,21 @@ class UserRegistrationView(APIView):
 
         # If verification failed or DID missing, deny the request
         if not is_verified or not verified_did:
+            logger.warning("Presentation failed or DID is missing.")
             return Response({'error': 'Presentation verification failed'}, status=status.HTTP_403_FORBIDDEN)
-        # Delete the challenge from the session
-        del request.session['login_challenge']
+        
+        try:
+            # Delete the challenge from the session
+            del request.session['login_challenge']
+        except KeyError:
+            logger.debug("Challenge already removed.")
         
         try:
             # Check if the user with this DID already exists
-            Profile.objects.get(did=verified_did)
-            logger.warning(f'Registration attempt for already existing DID: {verified_did}')
-            return Response({'error': 'DID is already registered'}, status=status.HTTP_409_CONFLICT)
+            profile = Profile.objects.get(did=verified_did)
+            user = profile.user
+            logger.info(f'Existing user {user.username} authenticated successfully!')
+            created = False
         
         except Profile.DoesNotExist:
             # Create a new Django user with DID as username
@@ -105,15 +111,16 @@ class UserRegistrationView(APIView):
 
             # Link Profile to User
             Profile.objects.create(user=user, did=verified_did)
+            created = True
 
-            # Issue a JWT token
-            refresh = RefreshToken.for_user(user)
+        # Issue a JWT token
+        refresh = RefreshToken.for_user(user)
 
-            # Send response to the client
-            return Response({
-                'success': True,
-                'user_id': user.id, 
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }, status=status.HTTP_201_CREATED)
+        # Send response to the client
+        return Response({
+            'success': True,
+            'user_id': user.id, 
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 

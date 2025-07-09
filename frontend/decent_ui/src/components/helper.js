@@ -1,7 +1,7 @@
 // Import libraries
 import { createVeramoAgent, createResolver } from '../agent'; // frontend veramo agent
-import { ethers, hashMessage } from 'ethers'; // interactions with Ethereum
-import { recoverPublicKey } from '@ethersproject/signing-key';  // Obtain the public key of the wallet
+import { ethers, /*hashMessage*/ } from 'ethers'; // interactions with Ethereum
+//import { recoverPublicKey } from '@ethersproject/signing-key';  // Obtain the public key of the wallet
 import { EthrDID } from 'ethr-did'; // Interactions with Ethereum DIDs
 
 /*
@@ -158,8 +158,9 @@ export const checkDIDProfile = async ({ signer, provider, publicKeyHex, address 
     // Construct a DID based on network and address
     const did = `did:ethr:${networkName}:${address}`;
     console.log('DID: ', did);
-    const encodedDID = encodeURIComponent(did)
+    //const encodedDID = encodeURIComponent(did)
 
+    /*
     const checkDIDexists = await fetch(
         `http://localhost:8000/api/did/${encodedDID}/exists`,
         { credentials: 'include' }
@@ -169,19 +170,23 @@ export const checkDIDProfile = async ({ signer, provider, publicKeyHex, address 
 
     console.log('DID profile exists?', exists);
 
+    /*
     if (exists) {
         console.log('Profile linked to this DID already exists.');
-        return;
+        return did;
     }
-
-    const agent = await createVeramoAgent(signer, provider, publicKeyHex);
+    */
 
     // Request and extract challenge (nonce) from the backend (to prevent replay attacks)
     const challengeResponse = await fetch(
-        'http://localhost:8000/api/registration/challenge', 
+        'http://localhost:8000/api/authentication/challenge', 
         {credentials: 'include'});
     
     const { challenge } = await challengeResponse.json();
+
+    console.log('Obtained challenge', challenge);
+
+    const agent = await createVeramoAgent(signer, provider, publicKeyHex);
     
     // Create Verifiable Presentation, sign with EIP-712
     const presentation = await agent.createVerifiablePresentation({
@@ -193,8 +198,10 @@ export const checkDIDProfile = async ({ signer, provider, publicKeyHex, address 
         proofFormat: 'EthereumEip712Signature2021',
     });
 
+    console.log('Created VP', presentation);
+
     // Send VP and challenge to the backend for verification and authentication
-    const createResponse = await fetch('http://localhost:8000/api/register', {
+    const createResponse = await fetch('http://localhost:8000/api/authenticate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
