@@ -93,8 +93,7 @@ export const connectWithMetaMask = async () => {
 */
 
 
-export async function checkDidOnChain () {
-    const did = 'did:ethr:sepolia:0x954722291EFe083e37a6Fd2224ac436a95361550';
+export async function checkDidOnChain (did) {
     try {
         const resolver = createResolver();
         const result = await resolver.resolve(did);

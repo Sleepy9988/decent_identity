@@ -3,6 +3,6 @@ from .models import Profile
 # Register your models here.
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'did')
+    list_display = ('user', 'did', 'creation_date', 'latest_access')
 
 admin.site.register(Profile, ProfileAdmin)

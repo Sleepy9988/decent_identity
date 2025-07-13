@@ -7,6 +7,8 @@ import Footer from './components/Footer/Footer.jsx';
 import ConnectWeb3AuthButton from "./components/Button/ConnectWeb3AuthButton.jsx";
 import DisconnectWeb3AuthButton from "./components/Button/DisconnectWeb3AuthButton.jsx"
 
+import { checkDidOnChain } from './components/helper.js';
+
 
 function App() {
   const { isConnected, loading: connectLoading } = useWeb3AuthConnect();
@@ -30,6 +32,7 @@ function App() {
                 <strong>{did}</strong>
               </p>
               <DisconnectWeb3AuthButton/>
+              <button onClick={() => checkDidOnChain(did)}>Check did on Chain</button>
             </div>
           )}
           {connectLoading && <div>Connecting...</div>}
