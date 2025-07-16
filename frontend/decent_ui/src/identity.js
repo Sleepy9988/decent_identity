@@ -3,6 +3,8 @@ import { recoverPublicKey } from "@ethersproject/signing-key";
 
 import { checkDIDProfile } from "./components/helper"
 
+import VeramoAgentWrapper from "./agent";
+
 export async function handleWeb3AuthLogin(web3authProvider) {
     if (!web3authProvider) return;
 
@@ -17,12 +19,19 @@ export async function handleWeb3AuthLogin(web3authProvider) {
         const publicKeyHex = publicKey.slice(4);
 
         const network = await ethersProvider.getNetwork();
-        const address = await signer.getAddress();
+        //const address = await signer.getAddress();
         console.log(network.name, network.chainId);
 
-        const did = await checkDIDProfile({ signer, provider: ethersProvider, publicKeyHex, address});
+        const agentWrapper = new VeramoAgentWrapper(ethersProvider, signer, publicKeyHex);
 
-        return did;
+        await agentWrapper.init();
+
+        const agent = agentWrapper.getAgent();
+        const did = agentWrapper.getDID();
+
+        const authenticatedDid = await checkDIDProfile({ agent, did })
+
+        return authenticatedDid;
     
     } catch (err) {
         console.error("Error in handleCreateDIDProfile:", err);

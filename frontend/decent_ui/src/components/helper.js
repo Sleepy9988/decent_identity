@@ -146,8 +146,7 @@ export async function anchorDid() {
     console.log('DID anchored with transaction:', tx.hash);
 }
 
-
-
+/*
 export const checkDIDProfile = async ({ signer, provider, publicKeyHex, address }) => {
     // Get network, address and network name 
     const network = await provider.getNetwork();
@@ -174,7 +173,7 @@ export const checkDIDProfile = async ({ signer, provider, publicKeyHex, address 
         console.log('Profile linked to this DID already exists.');
         return did;
     }
-    */
+ 
 
     // Request and extract challenge (nonce) from the backend (to prevent replay attacks)
     const challengeResponse = await fetch(
@@ -220,6 +219,27 @@ export const checkDIDProfile = async ({ signer, provider, publicKeyHex, address 
 
     return did;
 }
+*/
+/*
+export const generateIdentityCredential = async (did) => {
+     const credential = await agent.createVerifiableCredential({
+        credential: {
+            '@context': ["https://www.w3.org/ns/credentials/v2"],
+            type: ['VerifiableCredential', 'IdentityCredential'],
+            issuer: { id: did },
+            issuanceDate: "2025-07-16T10:00:00Z",
+            expirationDate: "2025-08-16T10:00:00Z",
+            credentialSubject: {
+                id: did,
+                "name": "Bob",
+                "email": "bob@example.com"
+            },
+        },
+        proofFormat: 'EthereumEip712Signature2021',
+    });
+
+    return credential;
+}
 
 /*
 
@@ -244,3 +264,49 @@ export const connectMetaMask = async () => {
     console.log('MetaMask DID ensured!');
 } 
 */
+
+export const checkDIDProfile = async ({ agent, did }) => {
+    
+    // Request and extract challenge (nonce) from the backend (to prevent replay attacks)
+    const challengeResponse = await fetch(
+        'http://localhost:8000/api/authentication/challenge', 
+        {credentials: 'include'});
+    
+    const { challenge } = await challengeResponse.json();
+
+    console.log('Obtained challenge', challenge);
+    
+    // Create Verifiable Presentation, sign with EIP-712
+    const presentation = await agent.createVerifiablePresentation({
+        presentation: {
+            holder: did,
+            //verifiableCredential: [credential],
+        },
+        challenge,
+        proofFormat: 'EthereumEip712Signature2021',
+    });
+
+    console.log('Created VP', presentation);
+
+    // Send VP and challenge to the backend for verification and authentication
+    const createResponse = await fetch('http://localhost:8000/api/authenticate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ presentation, challenge })
+    });
+
+    const result = await createResponse.json()
+
+    if (!createResponse.ok) {
+        throw new Error(result.error || 'Failed to create profile.');
+    }
+
+    console.log('Profile created and/or user logged in!', result);
+
+    // Store access token in localStorage
+    localStorage.setItem('authToken', result.access);
+    console.log('Authenticated successfully:', result);
+
+    return did;
+}
