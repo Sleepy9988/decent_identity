@@ -25,6 +25,7 @@
     "@web3auth/modal": "^10.0.5",
     "@web3auth/openlogin-adapter": "^8.12.4",
     "ethr-did": "^3.0.38",
+    "jwt-decode": "^4.0.0",
     "process": "^0.11.10",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

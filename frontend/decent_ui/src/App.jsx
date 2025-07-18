@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
+//import React, { useEffect } from 'react';
 import './App.css';
 import { useWeb3AuthConnect } from "@web3auth/modal/react";
-
 import Header from './components/Header/Header.jsx';
 import Footer from './components/Footer/Footer.jsx';
 import ConnectWeb3AuthButton from "./components/Button/ConnectWeb3AuthButton.jsx";
-import DisconnectWeb3AuthButton from "./components/Button/DisconnectWeb3AuthButton.jsx"
+import DisconnectWeb3AuthButton from "./components/Button/DisconnectWeb3AuthButton.jsx";
+import SubmitVCButton from "./components/Button/SubmitVCButton.jsx";
 
 import { checkDidOnChain } from './components/helper.js';
+import { useAgent } from './AgentContext';
+
 
 
 function App() {
   const { isConnected, loading: connectLoading } = useWeb3AuthConnect();
 
-  const [did, setDid] = useState(null);
-
+   const { did } = useAgent();
+ 
   //const loggedIn = isConnected && did;
  
   return (
@@ -24,7 +26,7 @@ function App() {
         <main>
           <h1>Decentralized Identity & Profile Management</h1>
           {!isConnected ? (
-            <ConnectWeb3AuthButton onDIDResolved={setDid} />
+            <ConnectWeb3AuthButton />
           ) : (
             <div>
               <p>Logged in as:</p>
@@ -33,6 +35,7 @@ function App() {
               </p>
               <DisconnectWeb3AuthButton/>
               <button onClick={() => checkDidOnChain(did)}>Check did on Chain</button>
+              <SubmitVCButton/>
             </div>
           )}
           {connectLoading && <div>Connecting...</div>}

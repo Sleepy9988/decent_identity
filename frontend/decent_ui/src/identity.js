@@ -5,7 +5,7 @@ import { checkDIDProfile } from "./components/helper"
 
 import VeramoAgentWrapper from "./agent";
 
-export async function handleWeb3AuthLogin(web3authProvider) {
+export async function handleWeb3AuthLogin(web3authProvider, setAgent, setDid) {
     if (!web3authProvider) return;
 
     try {
@@ -23,11 +23,13 @@ export async function handleWeb3AuthLogin(web3authProvider) {
         console.log(network.name, network.chainId);
 
         const agentWrapper = new VeramoAgentWrapper(ethersProvider, signer, publicKeyHex);
-
         await agentWrapper.init();
 
         const agent = agentWrapper.getAgent();
         const did = agentWrapper.getDID();
+
+        setAgent(agent);
+        setDid(did);
 
         const authenticatedDid = await checkDIDProfile({ agent, did })
 

@@ -1,5 +1,5 @@
 // Import libraries
-import { createVeramoAgent, createResolver } from '../agent'; // frontend veramo agent
+import { createResolver } from '../agent'; // frontend veramo agent
 import { ethers, /*hashMessage*/ } from 'ethers'; // interactions with Ethereum
 //import { recoverPublicKey } from '@ethersproject/signing-key';  // Obtain the public key of the wallet
 import { EthrDID } from 'ethr-did'; // Interactions with Ethereum DIDs
@@ -220,8 +220,8 @@ export const checkDIDProfile = async ({ signer, provider, publicKeyHex, address 
     return did;
 }
 */
-/*
-export const generateIdentityCredential = async (did) => {
+
+export const generateIdentityCredential = async ({ agent, did }) => {
      const credential = await agent.createVerifiableCredential({
         credential: {
             '@context': ["https://www.w3.org/ns/credentials/v2"],
@@ -237,6 +237,7 @@ export const generateIdentityCredential = async (did) => {
         },
         proofFormat: 'EthereumEip712Signature2021',
     });
+    console.log(credential);
 
     return credential;
 }
@@ -280,7 +281,6 @@ export const checkDIDProfile = async ({ agent, did }) => {
     const presentation = await agent.createVerifiablePresentation({
         presentation: {
             holder: did,
-            //verifiableCredential: [credential],
         },
         challenge,
         proofFormat: 'EthereumEip712Signature2021',
@@ -306,6 +306,7 @@ export const checkDIDProfile = async ({ agent, did }) => {
 
     // Store access token in localStorage
     localStorage.setItem('authToken', result.access);
+    localStorage.setItem('refreshToken', result.refresh); 
     console.log('Authenticated successfully:', result);
 
     return did;
