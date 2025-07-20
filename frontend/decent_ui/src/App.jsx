@@ -40,7 +40,7 @@ function App() {
           )}
           {connectLoading && <div>Connecting...</div>}
         </main>
-        </div>
+      </div>
       <Footer/>
     </div>
   );

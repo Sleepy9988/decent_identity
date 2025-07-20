@@ -222,7 +222,7 @@ export const checkDIDProfile = async ({ signer, provider, publicKeyHex, address 
 */
 
 export const generateIdentityCredential = async ({ agent, did }) => {
-     const credential = await agent.createVerifiableCredential({
+     const vc_identity = await agent.createVerifiableCredential({
         credential: {
             '@context': ["https://www.w3.org/ns/credentials/v2"],
             type: ['VerifiableCredential', 'IdentityCredential'],
@@ -237,9 +237,25 @@ export const generateIdentityCredential = async ({ agent, did }) => {
         },
         proofFormat: 'EthereumEip712Signature2021',
     });
-    console.log(credential);
+    console.log(vc_identity);
 
-    return credential;
+    // Send VP and challenge to the backend for verification and authentication
+    const createResponse = await fetch('http://localhost:8000/api/credential/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ credential: vc_identity })
+    });
+
+    const result = await createResponse.json()
+
+    if (!createResponse.ok) {
+        throw new Error(result.error || 'Failed to post Identity Credential.');
+    }
+
+    console.log('Identity Credential created!', result);
+
+    return vc_identity;
 }
 
 /*
@@ -304,7 +320,7 @@ export const checkDIDProfile = async ({ agent, did }) => {
 
     console.log('Profile created and/or user logged in!', result);
 
-    // Store access token in localStorage
+    // Store access & refresh tokens in localStorage
     localStorage.setItem('authToken', result.access);
     localStorage.setItem('refreshToken', result.refresh); 
     console.log('Authenticated successfully:', result);
