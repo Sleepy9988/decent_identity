@@ -12,7 +12,7 @@ const SubmitVCButton = () => {
             console.error("Agent or DID not available.");
             return;
         }
-        await generateIdentityCredential({ agent, did });
+        await generateIdentityCredential({ agent, did, accessToken: localStorage.getItem('accessToken') });
     };
 
     return (

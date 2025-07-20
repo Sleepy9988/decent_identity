@@ -221,7 +221,7 @@ export const checkDIDProfile = async ({ signer, provider, publicKeyHex, address 
 }
 */
 
-export const generateIdentityCredential = async ({ agent, did }) => {
+export const generateIdentityCredential = async ({ agent, did, accessToken }) => {
      const vc_identity = await agent.createVerifiableCredential({
         credential: {
             '@context': ["https://www.w3.org/ns/credentials/v2"],
@@ -242,7 +242,10 @@ export const generateIdentityCredential = async ({ agent, did }) => {
     // Send VP and challenge to the backend for verification and authentication
     const createResponse = await fetch('http://localhost:8000/api/credential/verify', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`, 
+         },
         credentials: 'include',
         body: JSON.stringify({ credential: vc_identity })
     });
@@ -319,6 +322,9 @@ export const checkDIDProfile = async ({ agent, did }) => {
     }
 
     console.log('Profile created and/or user logged in!', result);
+
+    const accessToken = result.access;
+    localStorage.setItem('accessToken', accessToken);
 
     // Store access & refresh tokens in localStorage
     localStorage.setItem('authToken', result.access);
