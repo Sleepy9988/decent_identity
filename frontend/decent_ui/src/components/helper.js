@@ -290,22 +290,17 @@ export const checkDIDProfile = async ({ agent, did }) => {
     // Request and extract challenge (nonce) from the backend (to prevent replay attacks)
     const challengeResponse = await fetch(
         'http://localhost:8000/api/authentication/challenge', 
-        {credentials: 'include'});
+        {credentials: 'include'}
+    );
     
     const { challenge } = await challengeResponse.json();
 
-    console.log('Obtained challenge', challenge);
-    
     // Create Verifiable Presentation, sign with EIP-712
     const presentation = await agent.createVerifiablePresentation({
-        presentation: {
-            holder: did,
-        },
+        presentation: { holder: did },
         challenge,
         proofFormat: 'EthereumEip712Signature2021',
     });
-
-    console.log('Created VP', presentation);
 
     // Send VP and challenge to the backend for verification and authentication
     const createResponse = await fetch('http://localhost:8000/api/authenticate', {
@@ -321,15 +316,36 @@ export const checkDIDProfile = async ({ agent, did }) => {
         throw new Error(result.error || 'Failed to create profile.');
     }
 
-    console.log('Profile created and/or user logged in!', result);
-
-    const accessToken = result.access;
-    localStorage.setItem('accessToken', accessToken);
-
     // Store access & refresh tokens in localStorage
-    localStorage.setItem('authToken', result.access);
+    localStorage.setItem('accessToken', result.access);
     localStorage.setItem('refreshToken', result.refresh); 
-    console.log('Authenticated successfully:', result);
 
-    return did;
+    return {accessToken: result.access, did};
+}
+
+
+export const getCredentials = async (accessToken) => {
+
+    const response = await fetch(
+        `http://localhost:8000/api/me/identities/`,
+        { 
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': `application/json`,
+            },
+            credentials: 'include' 
+        }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        console.error('Failed to fetch identities', data);
+        throw new Error(data.detail || 'Error fetching identities')
+    }
+
+    
+    console.log('Fetched identities:', data);
+    return data;
 }

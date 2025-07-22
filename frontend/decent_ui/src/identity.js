@@ -5,7 +5,7 @@ import { checkDIDProfile } from "./components/helper"
 
 import VeramoAgentWrapper from "./agent";
 
-export async function handleWeb3AuthLogin(web3authProvider, setAgent, setDid) {
+export async function handleWeb3AuthLogin(web3authProvider, setAgent, setDid, setAccessToken) {
     if (!web3authProvider) return;
 
     try {
@@ -31,9 +31,17 @@ export async function handleWeb3AuthLogin(web3authProvider, setAgent, setDid) {
         setAgent(agent);
         setDid(did);
 
-        const authenticatedDid = await checkDIDProfile({ agent, did })
+        const result = await checkDIDProfile({ agent, did });
+        const accessToken = result.accessToken;
+        const authenticatedDid = result.did;
 
-        return authenticatedDid;
+        if (!accessToken) {
+            throw new Error('Access token missing from profile check');
+        }
+
+        setAccessToken(accessToken)
+
+        return { authenticatedDid, accessToken };
     
     } catch (err) {
         console.error("Error in handleCreateDIDProfile:", err);
