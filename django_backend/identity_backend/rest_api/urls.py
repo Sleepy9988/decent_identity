@@ -1,8 +1,16 @@
 from django.urls import path
-from .api import UserAuthenticationnView, LoginChallengeView, DIDExistsView
+from .api import (
+    UserAuthenticationView, 
+    LoginChallengeView, 
+    DIDExistsView, 
+    CreateCredentialView,
+    GetMyIdentitiesView
+)
 
 urlpatterns = [
-      path('authenticate', UserAuthenticationnView.as_view(), name='user_authentication'),
+      path('authenticate', UserAuthenticationView.as_view(), name='user_authentication'),
       path('authentication/challenge', LoginChallengeView.as_view(), name='authentication_challenge'),
-      path('did/<str:did>/exists', DIDExistsView.as_view(), name='check_did_exists')
+      path('did/<str:did>/exists', DIDExistsView.as_view(), name='check_did_exists'),
+      path('credential/verify', CreateCredentialView.as_view(), name='verify_credential'),
+      path('me/identities/', GetMyIdentitiesView.as_view(), name='get_identities')
 ]

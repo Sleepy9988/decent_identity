@@ -6,8 +6,9 @@ import {
   ApiSchemaRouter,
   RequestWithAgentRouter,
 } from '@veramo/remote-server';
+import { resolveAddress } from 'ethers';
 
-const exposedMethods = [ 'verifyPresentation', ]//agent.availableMethods();
+const exposedMethods = [ 'verifyPresentationEIP712', 'verifyCredential' ]//agent.availableMethods();
 
 const basePath = '/agent'
 const schemaPath = '/open-api.json'
@@ -48,8 +49,7 @@ app.post('/verify-presentation', express.json(), async (req, res) => {
   console.log('Domain:', domain);
 
   if (!presentation || !challenge ) {
-    res.status(400).json({ error: 'Missing presentation or challenge '})
-    return 
+    return res.status(400).json({ error: 'Missing presentation or challenge'});
   }
 
   try {
@@ -77,6 +77,31 @@ app.post('/verify-presentation', express.json(), async (req, res) => {
     res.status(500).json({ error: 'Verification failed' })
   }
 })
+
+app.post('/verify-credential', express.json(), async (req, res) => {
+  const { credential } = req.body;
+
+  if(!credential) {
+    return res.status(400).json({ error: 'Missing credential'});
+  }
+
+  try {
+    const result = await agent.verifyCredential({ credential });
+
+    console.log('VC verfication result:', result);
+
+    const responsePayload = {
+      verified: result, 
+      issuer: credential.issuer,
+      credential,
+    }
+
+    res.status(200).json(responsePayload);
+  } catch (err) {
+    console.error('Credential verification failed:', err);
+    res.status(500).json({ error: 'Credential could not be verified'});
+  }
+});
 
 const PORT = 3003
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`))

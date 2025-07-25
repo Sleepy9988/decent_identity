@@ -1,7 +1,9 @@
-import { useWeb3AuthConnect, useWeb3AuthDisconnect } from "@web3auth/modal/react";
 import React from "react";
-import { useAgent } from '../../AgentContext';
+import { useWeb3AuthConnect, useWeb3AuthDisconnect } from "@web3auth/modal/react";
+import { useAgent } from '../../services/AgentContext';
 import { logoutUser } from '../../utils/logoutUser';
+import Button from '@mui/material/Button';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 
 const DisconnectWeb3AuthButton = () => {
@@ -15,7 +17,15 @@ const DisconnectWeb3AuthButton = () => {
 
     if (isConnected) {
         return (
-            <button onClick={() => handleLogout()} >Disconnect</button>
+            <Button 
+                variant="outlined"  
+                startIcon={<LogoutIcon />}
+                color="error"
+                size="large"
+                onClick={() => handleLogout()} 
+            >
+                Disconnect
+            </Button>
         )
     }
     return null;

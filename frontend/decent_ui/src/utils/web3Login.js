@@ -1,9 +1,9 @@
 import { ethers, hashMessage } from "ethers";
 import { recoverPublicKey } from "@ethersproject/signing-key";
 
-import { checkDIDProfile } from "./components/helper"
+import { checkDIDProfile } from "../components/helper"
 
-import VeramoAgentWrapper from "./agent";
+import VeramoAgentWrapper from "../services/veramo_agent";
 
 export async function handleWeb3AuthLogin(web3authProvider, setAgent, setDid, setAccessToken) {
     if (!web3authProvider) return;
@@ -30,6 +30,7 @@ export async function handleWeb3AuthLogin(web3authProvider, setAgent, setDid, se
 
         setAgent(agent);
         setDid(did);
+        localStorage.setItem('did', did);
 
         const result = await checkDIDProfile({ agent, did });
         const accessToken = result.accessToken;

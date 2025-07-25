@@ -1,6 +1,6 @@
 import React from "react";
 import { generateIdentityCredential } from "../helper";
-import { useAgent } from '../../AgentContext';
+import { useAgent } from '../../services/AgentContext';
 
 import './Button.css';
 

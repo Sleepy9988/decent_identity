@@ -1,48 +1,18 @@
-//import React, { useEffect } from 'react';
-import './App.css';
-import { useWeb3AuthConnect } from "@web3auth/modal/react";
-import Header from './components/Header/Header.jsx';
-import Footer from './components/Footer/Footer.jsx';
-import ConnectWeb3AuthButton from "./components/Button/ConnectWeb3AuthButton.jsx";
-import DisconnectWeb3AuthButton from "./components/Button/DisconnectWeb3AuthButton.jsx";
-import SubmitVCButton from "./components/Button/SubmitVCButton.jsx";
-
-import { checkDidOnChain } from './components/helper.js';
-import { useAgent } from './AgentContext';
-
-
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout/Layout.jsx';
+import Home from './pages/Dashboard.jsx';
+import Login from './pages/Login.jsx';
 
 function App() {
-  const { isConnected, loading: connectLoading } = useWeb3AuthConnect();
-
-   const { did } = useAgent();
- 
-  //const loggedIn = isConnected && did;
- 
   return (
-    <div className='App'>
-      <Header />
-      <div className="container">
-        <main>
-          <h1>Decentralized Identity & Profile Management</h1>
-          {!isConnected ? (
-            <ConnectWeb3AuthButton />
-          ) : (
-            <div>
-              <p>Logged in as:</p>
-              <p>
-                <strong>{did}</strong>
-              </p>
-              <DisconnectWeb3AuthButton/>
-              <button onClick={() => checkDidOnChain(did)}>Check did on Chain</button>
-              <SubmitVCButton/>
-            </div>
-          )}
-          {connectLoading && <div>Connecting...</div>}
-        </main>
-      </div>
-      <Footer/>
-    </div>
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/dashboard" element={<Home />} />
+        </Routes>
+      </Layout>
+    </Router>
   );
 }
 

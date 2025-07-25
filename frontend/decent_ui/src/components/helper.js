@@ -1,5 +1,5 @@
 // Import libraries
-import { createResolver } from '../agent'; // frontend veramo agent
+import { createResolver } from '../services/veramo_agent'; // frontend veramo agent
 import { ethers, /*hashMessage*/ } from 'ethers'; // interactions with Ethereum
 //import { recoverPublicKey } from '@ethersproject/signing-key';  // Obtain the public key of the wallet
 import { EthrDID } from 'ethr-did'; // Interactions with Ethereum DIDs
@@ -250,7 +250,8 @@ export const generateIdentityCredential = async ({ agent, did, accessToken }) =>
         body: JSON.stringify({ credential: vc_identity })
     });
 
-    const result = await createResponse.json()
+    const result = await createResponse.json();
+    console.log(result);
 
     if (!createResponse.ok) {
         throw new Error(result.error || 'Failed to post Identity Credential.');
@@ -345,7 +346,6 @@ export const getCredentials = async (accessToken) => {
         throw new Error(data.detail || 'Error fetching identities')
     }
 
-    
     console.log('Fetched identities:', data);
     return data;
 }

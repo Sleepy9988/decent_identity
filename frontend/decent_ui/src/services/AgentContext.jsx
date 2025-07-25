@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState } from 'react';
 import { useEffect } from 'react';
-import { isTokenExpired } from './utils/tokenExpiration.js';
-import { refreshAccessToken } from './utils/refreshToken.js';
+import { isTokenExpired } from '../utils/tokenExpiration.js';
+import { refreshAccessToken } from '../utils/refreshToken.js';
 import { useWeb3Auth } from "@web3auth/modal/react";
-import { logoutUser } from './utils/logoutUser';
+import { logoutUser } from '../utils/logoutUser.js';
 
 const AgentContext = createContext();
 
@@ -17,19 +17,32 @@ export const AgentProvider = ({ children }) => {
     const { disconnect } = useWeb3Auth();
 
     const handleLogout = () => {
-        logoutUser({ setAgent, setDid, disconnect });
+        logoutUser({ setAgent, setDid, setAccessToken, disconnect });
     }
-    /*
-    const logoutUser = () => {
-        setAgent(null);
-        setDid(null);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        disconnect();
-        console.log('User logged out.');
-    }
-    */
 
+    useEffect(() => {
+        const storedDid = localStorage.getItem('did');
+        const storedToken = localStorage.getItem('accessToken');
+        if (storedDid) setDid(storedDid);
+        if (storedToken) setAccessToken(storedToken);
+    }, []);
+
+    useEffect(() => {
+        if (did) {
+            localStorage.setItem('did', did);
+        } else {
+            localStorage.removeItem('did');
+        }
+    }, [did]);
+
+    useEffect(() => {
+        if (accessToken) {
+            localStorage.setItem('accessToken', accessToken);
+        } else {
+            localStorage.removeItem('accessToken');
+        }
+    }, [accessToken]);
+   
     useEffect(() => {
         const interval = setInterval(async () => {
             const token = localStorage.getItem('accessToken');
