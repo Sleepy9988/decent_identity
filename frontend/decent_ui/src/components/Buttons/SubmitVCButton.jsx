@@ -5,14 +5,14 @@ import { useAgent } from '../../services/AgentContext';
 import './Button.css';
 
 const SubmitVCButton = () => {
-    const { agent, did } = useAgent();
+    const { agent, did, signer } = useAgent();
     
     const handleClick = async () => {
         if (!agent || !did) {
             console.error("Agent or DID not available.");
             return;
         }
-        await generateIdentityCredential({ agent, did, accessToken: localStorage.getItem('accessToken') });
+        await generateIdentityCredential({ agent, did, accessToken: localStorage.getItem('accessToken'), signer });
     };
 
     return (

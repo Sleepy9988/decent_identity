@@ -9,28 +9,31 @@ import { getDidKeyResolver } from '@veramo/did-provider-key';
 const infuraProjectId = '6568670383cf484cb817256f0eea66b5'
 
 export const agent = createAgent({
-    plugins: [
-        new DIDResolverPlugin({
-      
-      ...ethrDidResolver({ infuraProjectId,
+  plugins: [
+    new DIDResolverPlugin({
+      ...ethrDidResolver({ 
+        infuraProjectId,
         networks: [
           { 
             name: 'mainnet', 
             rpcUrl: 'https://mainnet.infura.io/v3/' + infuraProjectId, 
-            chainId: 1},
+            chainId: 1
+          },
           { 
             name: 'sepolia', 
             rpcUrl: 'https://sepolia.infura.io/v3/' + infuraProjectId, 
             chainId: 11155111, 
-            registry: '0x03d5003bf0e79C5F5223588F347ebA39AfbC3818'},
+            registry: '0x03d5003bf0e79C5F5223588F347ebA39AfbC3818'
+          },
         ], 
        }),
-      ...getDidKeyResolver(),
-
+      //...getDidKeyResolver(),
     }),
     new CredentialIssuerEIP712(),
     new CredentialPlugin({
       issuers: [],
+    })
+  ]
 })
-    ]
-})
+
+

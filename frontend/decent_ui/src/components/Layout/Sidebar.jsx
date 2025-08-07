@@ -14,6 +14,7 @@ import InboxIcon from '@mui/icons-material/Inbox';
 import Typography from '@mui/material/Typography';
 
 import { NavLink } from 'react-router-dom';
+import { useWeb3AuthConnect } from "@web3auth/modal/react";
 
 const drawerWidth = 320;
 
@@ -24,6 +25,7 @@ const menuItems = [
 ];
 
 export default function SidebarLeft() {
+  const { connectorName } = useWeb3AuthConnect();
   return (
     <Drawer
       variant="permanent"
@@ -75,6 +77,16 @@ export default function SidebarLeft() {
         <Box sx={{ flexGrow: 1 }} />
         <Divider />
         <List>
+          <ListItem key="connector">
+            <ListItemIcon>
+              <img src='/assets/logo.png' alt="DIDHub Logo" style={{ height: 40 }} />
+            </ListItemIcon>
+            <ListItemText 
+              primary={"Connected with"} 
+              secondary={connectorName} 
+              slotProps={{secondary: {fontFamily:'monospace', fontSize: '1.5rem', textTransform:'capitalize'}}}
+            />
+          </ListItem>
         </List>
       </Box>
     </Drawer>

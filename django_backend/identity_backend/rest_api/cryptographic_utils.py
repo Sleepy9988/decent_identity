@@ -1,13 +1,13 @@
 import os 
 import base64
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
+from cryptography.fernet import Fernet # type: ignore
+from cryptography.hazmat.primitives import hashes # type: ignore
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 
-def get_fernet_key(did, salt):
-    if isinstance(did, str):
-        did = did.encode()
+def get_fernet_key(signature, salt):
+    if isinstance(signature, str):
+        signature = signature.encode()
         
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
@@ -16,14 +16,16 @@ def get_fernet_key(did, salt):
         iterations=1_200_000,
     )
 
-    key = base64.urlsafe_b64encode(kdf.derive(did))
+    key = base64.urlsafe_b64encode(kdf.derive(signature))
 
     return Fernet(key)
 
-def encrypt(data, did, salt):
-    f = get_fernet_key(did, salt)
+def encrypt(data, signature, salt):
+    f = get_fernet_key(signature, salt)
     return f.encrypt(data)
 
-def decrypt(data, did, salt):
-    f = get_fernet_key(did, salt)
+def decrypt(data, signature, salt):
+    f = get_fernet_key(signature, salt)
     return f.decrypt(data)
+
+

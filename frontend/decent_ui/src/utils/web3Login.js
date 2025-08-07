@@ -5,14 +5,14 @@ import { checkDIDProfile } from "../components/helper"
 
 import VeramoAgentWrapper from "../services/veramo_agent";
 
-export async function handleWeb3AuthLogin(web3authProvider, setAgent, setDid, setAccessToken) {
+export async function handleWeb3AuthLogin(web3authProvider, setAgent, setAccessToken) {
     if (!web3authProvider) return;
 
     try {
         const ethersProvider = new ethers.BrowserProvider(web3authProvider);
         const signer = await ethersProvider.getSigner();
 
-        const message = "Public Key Extraction";
+        const message = "DIDHub cryptographic key";
         const signature = await signer.signMessage(message);
         const digest = hashMessage(message);
         const publicKey = recoverPublicKey(digest, signature);
@@ -29,8 +29,8 @@ export async function handleWeb3AuthLogin(web3authProvider, setAgent, setDid, se
         const did = agentWrapper.getDID();
 
         setAgent(agent);
-        setDid(did);
         localStorage.setItem('did', did);
+        localStorage.setItem('signature', signature);
 
         const result = await checkDIDProfile({ agent, did });
         const accessToken = result.accessToken;
@@ -42,7 +42,7 @@ export async function handleWeb3AuthLogin(web3authProvider, setAgent, setDid, se
 
         setAccessToken(accessToken)
 
-        return { authenticatedDid, accessToken };
+        return { authenticatedDid, accessToken, signature };
     
     } catch (err) {
         console.error("Error in handleCreateDIDProfile:", err);

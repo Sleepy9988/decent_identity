@@ -5,7 +5,6 @@ from .cryptographic_utils import encrypt, decrypt
 
 import uuid
 import json
-# Create your models here.
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -35,14 +34,18 @@ class Identity(models.Model):
         unique_together = ('user', 'context', 'description')
         verbose_name_plural = "Identities"
 
-    def store_encrypted_data(self, raw_data):
+    def store_encrypted_data(self, raw_data, signature):
         data_bytes = json.dumps(raw_data).encode()
-        encrypted = encrypt(data_bytes, self.user.did.encode(), self.salt)
+        encrypted = encrypt(data_bytes, signature.encode(), self.salt)
         self.enc_data = encrypted
 
-    def retrieve_decrypted_data(self):
-        decrypted = decrypt(self.enc_data, self.user.did.encode(), self.salt)
-        return json.loads(decrypted.decode())
+    def retrieve_decrypted_data(self, signature):
+        try:
+            decrypted = decrypt(self.enc_data, signature.encode(), self.salt)
+            return json.loads(decrypted.decode())
+        except Exception as e:
+            print(e)
+            return None
     
     def save(self, *args, **kwargs):
         if not self.salt:

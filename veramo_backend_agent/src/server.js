@@ -1,3 +1,7 @@
+/*
+  Inspired by the following repository:
+  https://github.com/decentralized-identity/veramo/tree/next/packages/remote-server 
+*/
 import express from 'express';
 import { agent } from './setup.js';
 import swaggerUi from 'swagger-ui-express';
@@ -8,7 +12,7 @@ import {
 } from '@veramo/remote-server';
 import { resolveAddress } from 'ethers';
 
-const exposedMethods = [ 'verifyPresentationEIP712', 'verifyCredential' ]//agent.availableMethods();
+const exposedMethods = [ 'verifyPresentationEIP712', 'verifyCredentialEIP712' ]//agent.availableMethods();
 
 const basePath = '/agent'
 const schemaPath = '/open-api.json'
@@ -86,7 +90,7 @@ app.post('/verify-credential', express.json(), async (req, res) => {
   }
 
   try {
-    const result = await agent.verifyCredential({ credential });
+    const result = await agent.verifyCredentialEIP712({ credential });
 
     console.log('VC verfication result:', result);
 

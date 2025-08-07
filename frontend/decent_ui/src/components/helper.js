@@ -4,94 +4,7 @@ import { ethers, /*hashMessage*/ } from 'ethers'; // interactions with Ethereum
 //import { recoverPublicKey } from '@ethersproject/signing-key';  // Obtain the public key of the wallet
 import { EthrDID } from 'ethr-did'; // Interactions with Ethereum DIDs
 
-/*
-    Function to connect users via MetaMask wallet, generate VP, and send it 
-    to the backend for verification
-*/
-
-/*
-export const connectWithMetaMask = async () => {
-    // ensure MetaMask browser extension is available
-    if (!window.ethereum) throw new Error("MetaMask not found!");
-    
-    // Initialize BrowserProvider object, connect to wallet and get signer
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    const signer = await provider.getSigner();
-    
-    // Extract the public key of the MetaMask wallet
-    const message = 'Public Key Extraction';
-    const signature = await signer.signMessage(message);
-    const digest = hashMessage(message);
-    const publicKey = recoverPublicKey(digest, signature);
-    const publicKeyHex = publicKey.slice(4);
-    
-    // Get network, address and network name 
-    const network = await provider.getNetwork();
-    const address = await signer.getAddress();
-    const networkName = network.name === 'homestead' ? 'mainnet' : network.name;
-    
-    // Construct a DID based on network and address
-    const did = `did:ethr:${networkName}:${address}`;
-    // Create Veramo frontend agent, pass signer, provider and public key
-    const agent = await createVeramoAgent(signer, provider, publicKeyHex); 
-
-    const isAnchored = await checkDidOnChain(agent, did);
-
-    console.log(isAnchored);
-
-    // Request and extract challenge (nonce) from the backend (to prevent replay attacks)
-    const challengeResponse = await fetch('http://localhost:8000/api/registration/challenge', {credentials: 'include'});
-    const { challenge } = await challengeResponse.json();
-    
-/*
-    const credential = await agent.createVerifiableCredential({
-        credential: {
-            issuer: { id: did },
-            type: ['VerifiableCredential'],
-            credentialSubject: {
-                id: did, 
-                name: "Test User",
-            },
-        },
-        proofFormat: 'EthereumEip712Signature2021',
-    });
-*/
-/*
-    // Create Verifiable Presentation, sign with EIP-712
-    const presentation = await agent.createVerifiablePresentation({
-        presentation: {
-            holder: did,
-            //verifiableCredential: [credential],
-        },
-        challenge,
-        proofFormat: 'EthereumEip712Signature2021',
-
-    });
-
-    // Send VP and challenge to the backend for verification and authentication
-    const createResponse = await fetch('http://localhost:8000/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ presentation, challenge })
-    });
-
-    const result = await createResponse.json()
-
-    if (!createResponse.ok) {
-        throw new Error(result.error || 'Failed to create profile.');
-    }
-
-    console.log('Profile created and/or user logged in!', result);
-    alert('Successfully signed in!');
-
-    // Store access token in localStorage
-    localStorage.setItem('authToken', result.access);
-}
-
-*/
-
+//not actively used --> refactor if necessary
 
 export async function checkDidOnChain (did) {
     try {
@@ -146,82 +59,8 @@ export async function anchorDid() {
     console.log('DID anchored with transaction:', tx.hash);
 }
 
-/*
-export const checkDIDProfile = async ({ signer, provider, publicKeyHex, address }) => {
-    // Get network, address and network name 
-    const network = await provider.getNetwork();
-    //const address = await signer.getAddress();
-    const networkName = network.name === 'homestead' ? 'mainnet' : network.name;
 
-    // Construct a DID based on network and address
-    const did = `did:ethr:${networkName}:${address}`;
-    console.log('DID: ', did);
-    //const encodedDID = encodeURIComponent(did)
-
-    /*
-    const checkDIDexists = await fetch(
-        `http://localhost:8000/api/did/${encodedDID}/exists`,
-        { credentials: 'include' }
-    );
-
-    const { exists } = await checkDIDexists.json();
-
-    console.log('DID profile exists?', exists);
-
-    /*
-    if (exists) {
-        console.log('Profile linked to this DID already exists.');
-        return did;
-    }
- 
-
-    // Request and extract challenge (nonce) from the backend (to prevent replay attacks)
-    const challengeResponse = await fetch(
-        'http://localhost:8000/api/authentication/challenge', 
-        {credentials: 'include'});
-    
-    const { challenge } = await challengeResponse.json();
-
-    console.log('Obtained challenge', challenge);
-
-    const agent = await createVeramoAgent(signer, provider, publicKeyHex);
-    
-    // Create Verifiable Presentation, sign with EIP-712
-    const presentation = await agent.createVerifiablePresentation({
-        presentation: {
-            holder: did,
-            //verifiableCredential: [credential],
-        },
-        challenge,
-        proofFormat: 'EthereumEip712Signature2021',
-    });
-
-    console.log('Created VP', presentation);
-
-    // Send VP and challenge to the backend for verification and authentication
-    const createResponse = await fetch('http://localhost:8000/api/authenticate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ presentation, challenge })
-    });
-
-    const result = await createResponse.json()
-
-    if (!createResponse.ok) {
-        throw new Error(result.error || 'Failed to create profile.');
-    }
-
-    console.log('Profile created and/or user logged in!', result);
-
-    // Store access token in localStorage
-    localStorage.setItem('authToken', result.access);
-
-    return did;
-}
-*/
-
-export const generateIdentityCredential = async ({ agent, did, accessToken }) => {
+export const generateIdentityCredential = async ({ agent, did, accessToken, signature}) => {
      const vc_identity = await agent.createVerifiableCredential({
         credential: {
             '@context': ["https://www.w3.org/ns/credentials/v2"],
@@ -247,7 +86,10 @@ export const generateIdentityCredential = async ({ agent, did, accessToken }) =>
             'Authorization': `Bearer ${accessToken}`, 
          },
         credentials: 'include',
-        body: JSON.stringify({ credential: vc_identity })
+        body: JSON.stringify({ 
+            credential: vc_identity,
+            signature
+        })
     });
 
     const result = await createResponse.json();
@@ -262,32 +104,8 @@ export const generateIdentityCredential = async ({ agent, did, accessToken }) =>
     return vc_identity;
 }
 
-/*
-
-export const connectMetaMask = async () => {
-    // ensure MetaMask browser extension is available
-    if (!window.ethereum) throw new Error("MetaMask not found!");
-
-    // Initialize BrowserProvider object, connect to wallet and get signer
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    const signer = await provider.getSigner();
-    
-    // Extract the public key of the MetaMask wallet
-    const message = 'Public Key Extraction';
-    const signature = await signer.signMessage(message);
-    const digest = hashMessage(message);
-    const publicKey = recoverPublicKey(digest, signature);
-    const publicKeyHex = publicKey.slice(4);
-
-    await checkDIDProfile({ signer, provider, publicKeyHex });
-
-    console.log('MetaMask DID ensured!');
-} 
-*/
 
 export const checkDIDProfile = async ({ agent, did }) => {
-    
     // Request and extract challenge (nonce) from the backend (to prevent replay attacks)
     const challengeResponse = await fetch(
         'http://localhost:8000/api/authentication/challenge', 
@@ -296,10 +114,17 @@ export const checkDIDProfile = async ({ agent, did }) => {
     
     const { challenge } = await challengeResponse.json();
 
+    const rawPresentation = {
+        holder: did,
+        '@context': ['https://www.w3.org/2018/credentials/v1'],
+        type: ['VerifiablePresentation'],
+        issuanceDate: new Date().toISOString(),
+        challenge
+    };
+
     // Create Verifiable Presentation, sign with EIP-712
     const presentation = await agent.createVerifiablePresentation({
-        presentation: { holder: did },
-        challenge,
+        presentation: rawPresentation,
         proofFormat: 'EthereumEip712Signature2021',
     });
 
@@ -325,17 +150,18 @@ export const checkDIDProfile = async ({ agent, did }) => {
 }
 
 
-export const getCredentials = async (accessToken) => {
+export const getIdentities = async (accessToken, signature) => {
 
     const response = await fetch(
         `http://localhost:8000/api/me/identities/`,
         { 
-            method: 'GET',
+            method: 'POST',
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': `application/json`,
             },
-            credentials: 'include' 
+            credentials: 'include',
+            body: JSON.stringify({ signature })
         }
     );
 
@@ -346,6 +172,6 @@ export const getCredentials = async (accessToken) => {
         throw new Error(data.detail || 'Error fetching identities')
     }
 
-    console.log('Fetched identities:', data);
+    //console.log('Fetched identities:', data);
     return data;
 }

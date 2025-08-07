@@ -54,33 +54,36 @@ class UserAuthenticationView(APIView):
             return Response({'error': 'Presentation is missing'}, status=status.HTTP_400_BAD_REQUEST)
         
         # Get the prviously issued challenge from the session
-        challenge = request.session.get('login_challenge')
-        logger.debug(challenge)
-        if not challenge:
+        session_challenge = request.session.get('login_challenge')
+        logger.debug(session_challenge)
+        if not session_challenge:
             return Response({'error': 'Missing login challenge'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # URL of the Veramo backend agent 
-        #veramo_service_url = 'http://localhost:3002/verify-presentation'
-        veramo_service_url = 'http://localhost:3003/verify-presentation'
-
+        # Verify challenge 
+        vp_challenge = presentation.get('challenge')
+        if not vp_challenge or vp_challenge != session_challenge:
+            return Response({'error': 'Challenge mismatch'}, status=status.HTTP_400_BAD_REQUEST)
+        
         try: 
-            logger.debug(f'Sending to Veramo: presentation={presentation}, challenge={challenge}')
-            # Send the presentation and challenge to the Veramo backend agent for verification
-            response = requests.post(veramo_service_url, json={
+            logger.debug(f'Sending to Veramo: presentation={presentation}, challenge={session_challenge}')
+            json = {
                 'presentation': presentation,
-                'challenge': challenge,
+                'challenge': session_challenge,
                 'domain': 11155111 # Sepolia 
-                })
+            }
+            # Send the presentation and challenge to the Veramo backend agent for verification
+            response = verify_with_veramo('verify-presentation', json)
 
-            logger.debug(f'Response text from Veramo: {response.text}')
+            logger.debug(f'Response text from Veramo: {response}')
             # Parse the response from Veramo
-            verification_data = response.json()
+            verification_data = response
             logger.debug(f'Veramo response: {verification_data}')
         
         # Handle connection errors
         except requests.exceptions.RequestException as e:
             logger.error(f'Error calling Veramo service: {e}')
-            return Response({'error': 'Could not connect to Veramo service'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            return Response({'error': 'Could not connect to Veramo service'}, 
+                            status=status.HTTP_503_SERVICE_UNAVAILABLE)
         
         # Extract the verification result 
         is_verified = verification_data.get('verified')
@@ -91,7 +94,8 @@ class UserAuthenticationView(APIView):
         # If verification failed or DID missing, deny the request
         if not is_verified or not verified_did:
             logger.warning("Presentation failed or DID is missing.")
-            return Response({'error': 'Presentation verification failed'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': 'Presentation verification failed'}, 
+                            status=status.HTTP_403_FORBIDDEN)
         
         try:
             # Delete the challenge from the session
@@ -154,6 +158,10 @@ class CreateCredentialView(APIView):
         issuer_did = vc.get('issuer', {}).get('id')
         jwt_did = request.auth.get('did')
 
+        signature = request.data.get('signature')
+        if not signature:
+            return Response({'error': 'Missing signature'}, status=status.HTTP_400_BAD_REQUEST)
+
         if issuer_did != jwt_did:
             logger.warning(f"VC issuer DID ({issuer_did}) does not match authenticated DID ({jwt_did})")
             return Response({'error': 'DID in VC does not match the authenticated DID'}, status=status.HTTP_403_FORBIDDEN)
@@ -176,22 +184,27 @@ class CreateCredentialView(APIView):
             'raw_data': subject_data,
         }
 
-        serializer = IdentitySerializer(data=identity_data)
+        serializer = IdentitySerializer(data=identity_data, context={'signature': signature })
         if serializer.is_valid():
             identity = serializer.save(user=user)
             return Response({'success': True, 'identity_id': identity.id})
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
+@method_decorator(csrf_exempt, name='dispatch')
 class GetMyIdentitiesView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     
-    def get(self, request):    
+    def post(self, request):    
+        signature = request.data.get('signature')
+        
+        if not signature:
+            return Response({'error': 'Missing signature'}, status=status.HTTP_400_BAD_REQUEST)
         did = request.user.profile.did
-
         ids = Identity.objects.filter(user__did=did)
-        serializer = IdentitySerializer(ids, many=True)
+        
+        serializer = IdentitySerializer(ids, many=True, context={'signature': signature})
         
         return Response({'identities': serializer.data}, status=status.HTTP_200_OK)
         

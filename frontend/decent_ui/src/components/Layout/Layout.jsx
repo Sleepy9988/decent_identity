@@ -21,7 +21,7 @@ const Layout = ({ children }) => {
                 sx={{
                     display: 'flex',
                     flexDirection: 'column',
-                    flexGrow: 1
+                    flexGrow: 1,
                 }}
             >
                 <Toolbar />

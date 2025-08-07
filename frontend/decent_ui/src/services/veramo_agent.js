@@ -27,7 +27,6 @@ class VeramoAgentWrapper {
 
     async init() {
         const kms = new Web3KeyManagementSystem({web3: this.provider});
-
         const address = await this.signer.getAddress();
         const networkName = (await this.signer.provider.getNetwork()).name;
         const didProviderKey = `did:ethr:${networkName}`;
@@ -75,8 +74,6 @@ class VeramoAgentWrapper {
                 new CredentialIssuerEIP712(), 
             ],
         })
-        // Define DID
-        const did = `${didProviderKey}:${address}`;
         
         // Import the public key from Web3 wallet
         await this.agent.keyManagerImport({
@@ -91,7 +88,7 @@ class VeramoAgentWrapper {
         
         // Import DID to reference it with the key
         await this.agent.didManagerImport({
-            did: did,
+            did: this.did,
             provider: didProviderKey,
             controllerKeyId: keyId,
             keys: [{
@@ -115,100 +112,14 @@ class VeramoAgentWrapper {
     getDID() {
         return this.did;
     }
+    getSigner() {
+        return this.signer;
+    }
 }
 
 export default VeramoAgentWrapper;
 
-/*
-// Function to initialize and return Veramo agent
-export const createVeramoAgent = async (signer, provider, publicKeyHex) => {
-    // Create instance of the Web3 Key Management System using the Web3 browser provider
-    const kms = new Web3KeyManagementSystem({web3: provider});
-    // get the wallet address
-    const address = await signer.getAddress();
-    // get the Ethereum network name
-    const networkName = (await signer.provider.getNetwork()).name;
-    // Define DID provider key
-    const didProviderKey = `did:ethr:${networkName}`;
-    // reference to the wallet
-    const keyId = `web3-${address}`;
 
-    // Create Veramo agent with necessary plugins
-    const agent = createAgent({
-        plugins: [
-            // DID Resolver plugin to resolve DIDs 
-            new DIDResolverPlugin({
-                ...ethrDidResolver({ 
-                    networks: [
-                        {
-                           name: 'sepolia',
-                           rpcUrl: 'https://sepolia.infura.io/v3/' + infuraProjectId  ,
-                           registry: '0x03d5003bf0e79C5F5223588F347ebA39AfbC3818' // Sepolia registry
-                        },
-                    ],
-                }),
-            }),
-            // Key Manager Plugin to manage keys and offload signing to the Web3 wallet
-            new KeyManager({
-                kms: {
-                    web3: kms,
-                },
-                store: new MemoryKeyStore(),
-            }),
-            // DID Manager Plugin to create and import DIDs
-            new DIDManager({
-                store: new MemoryDIDStore(),
-                defaultProvider: didProviderKey,
-                providers: {
-                    [didProviderKey]: new EthrDIDProvider({
-                        defaultKms: 'web3',
-                        network: networkName,
-                        rpcUrl: `https://${networkName}.infura.io/v3/` + infuraProjectId,
-                        identifier: address,
-                        signer: signer
-                    }),
-                },
-            }),
-            // Verifiable Credential Plugin to create and verify VCs
-            new CredentialPlugin(),
-            // EIP-712 Credential Issuing Plugin to sign with Ethereum wallets
-            new CredentialIssuerEIP712(), 
-        ],
-    })
-    // Define DID
-    const did = `${didProviderKey}:${address}`;
-    
-    // Import the public key from Web3 wallet
-    await agent.keyManagerImport({
-        kid: `web3-${address}`,
-        type: 'Secp256k1',
-        kms: 'web3',
-        publicKeyHex,
-        meta: {
-            algorithms: ['eth_signMessage', 'eth_signTypedData', 'EthereumEip712Signature2021'],
-        },
-    });
-    
-    // Import DID to reference it with the key
-    await agent.didManagerImport({
-        did: did,
-        provider: didProviderKey,
-        controllerKeyId: keyId,
-        keys: [{
-            kid: `web3-${address}`,
-            type: 'Secp256k1',
-            kms: 'web3',
-            publicKeyHex,
-            meta: {
-                algorithms: ['eth_signMessage', 'eth_signTypedData', 'EthereumEip712Signature2021'],
-            },
-        }],
-        
-    });
-    // Return the agent instance
-    return agent 
-};
-*/
 
 export const createResolver = () => {
     const ethrDidResolver = getResolver({
@@ -224,29 +135,5 @@ export const createResolver = () => {
     return resolver;
 }
 
-/*
-export const createKeyDidAgent = async () => {
-    const agent = createAgent({
-        plugins: [
-            new KeyManager({
-                store: new MemoryKeyStore(),
-                kms: {
-                    local: new KeyManagementSystem(new MemoryPrivateKeyStore()),
-                },
-            }),
-            new DIDManager({
-                store: new MemoryDIDStore(),
-                defaultProvider: 'did:key',
-                providers: {
-                    'did:key': new KeyDIDProvider({ defaultKms: 'local' }),
-                },
-            }),
-            new DIDResolverPlugin({
-                ...getDidKeyResolver(),
-            }),
-        ],
-    });
-    return agent;
-}
-*/
+
 

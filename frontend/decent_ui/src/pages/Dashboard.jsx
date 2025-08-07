@@ -1,34 +1,24 @@
 import React from 'react';
 import { useWeb3AuthConnect } from "@web3auth/modal/react";
-import { useNavigate } from 'react-router-dom';
 
 import { SubmitVCButton } from '../components/Buttons';
 import { checkDidOnChain } from '../components/helper.js';
-import { useAgent } from '../services/AgentContext.jsx';
+import { useAgent } from '../services/AgentContext';
 
-import { Box, Container, Icon, Typography } from '@mui/material';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
+import { Box, Container, Typography, Button, Card, CardContent, Divider } from '@mui/material';
 import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import Divider from '@mui/material/Divider';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IconButton from '@mui/material/IconButton';
-
+import CardCarousel from '../components/Misc/Carousel';
 
 const Dashboard = () => {
     const { isConnected } = useWeb3AuthConnect();
-    const { did } = useAgent();
-    const navigate = useNavigate();
+    const { did, id } = useAgent();
     const loggedIn = isConnected && did;
-
-    React.useEffect(() => {
-        if (!loggedIn) {
-            navigate('/');
-        }
-    }, [loggedIn, navigate]);
-
+    
     if (!loggedIn) return null;
+
+    const did_display = did.split(":")[3];
 
     return (
         <Container>
@@ -52,14 +42,16 @@ const Dashboard = () => {
                             borderRadius: 2, 
                             fontFamily: 'monospace',
                             fontSize: '1.5rem',
-                            
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
                         }}
                     >
-                        {did}
-                        <IconButton aria-label="copy" 
-                            sx={{pl:2}} 
+                        {did_display}
+                        <IconButton 
+                            aria-label="copy" 
                             onClick={() => navigator.clipboard.writeText(did)}>
-                            <ContentCopyIcon fontSize="large" />
+                            <ContentCopyIcon fontSize="medium" />
                         </IconButton>
                     </Box>
                     </CardContent>
@@ -68,6 +60,8 @@ const Dashboard = () => {
                 <Button onClick={() => checkDidOnChain(did)}>Check did on Chain</Button>
                 <SubmitVCButton/>
             </Box>
+            {id && <CardCarousel identities={id} />}
+            
         </Container>
     );
 };
