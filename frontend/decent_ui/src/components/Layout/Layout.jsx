@@ -8,7 +8,6 @@ import Container from '@mui/material/Container';
 import CssBaseline from '@mui/material/CssBaseline';
 import { useLocation } from 'react-router-dom';
 
-
 const Layout = ({ children }) => {
     const location = useLocation();
     const showSidebar = location.pathname !== '/'; 
@@ -25,11 +24,11 @@ const Layout = ({ children }) => {
                 }}
             >
                 <Toolbar />
-                <Box sx={{ flexGrow: 1, pt:4}}>
+                <Box sx={{ pt: 4}}>
                     {location.pathname === '/' ? (
                         children
                     ) : (
-                    <Container maxWidth="lg" align='center'>{children}</Container>
+                    <Container maxWidth={false} align='center'>{children}</Container>
                     )}
                 </Box>
                 <Footer />

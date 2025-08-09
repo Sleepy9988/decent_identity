@@ -60,18 +60,24 @@ export async function anchorDid() {
 }
 
 
-export const generateIdentityCredential = async ({ agent, did, accessToken, signature}) => {
-     const vc_identity = await agent.createVerifiableCredential({
+export const generateIdentityCredential = async ({ agent, did, accessToken, signature, payload}) => {
+    const { context, description, subject = {} } = payload || {};
+
+    const issuanceDate = new Date().toISOString();
+    const expiracyDate = new Date(Date.now() + 30*24*60*60*1000).toISOString();
+
+    const vc_identity = await agent.createVerifiableCredential({
         credential: {
             '@context': ["https://www.w3.org/ns/credentials/v2"],
             type: ['VerifiableCredential', 'IdentityCredential'],
             issuer: { id: did },
-            issuanceDate: "2025-07-16T10:00:00Z",
-            expirationDate: "2025-08-16T10:00:00Z",
+            issuanceDate: issuanceDate,
+            expirationDate: expiracyDate,
             credentialSubject: {
                 id: did,
-                "name": "Bob",
-                "email": "bob@example.com"
+                context,
+                description,
+                ...subject,
             },
         },
         proofFormat: 'EthereumEip712Signature2021',
@@ -89,7 +95,7 @@ export const generateIdentityCredential = async ({ agent, did, accessToken, sign
         body: JSON.stringify({ 
             credential: vc_identity,
             signature
-        })
+        }),
     });
 
     const result = await createResponse.json();

@@ -168,8 +168,13 @@ class CreateCredentialView(APIView):
         
         subject_data = vc.get('credentialSubject', {})
 
-        if not subject_data:
+        if not isinstance(subject_data, dict) or not subject_data:
             return Response({'error': 'Incomplete credential data'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        context = subject_data.get('context')
+        description = subject_data.get('description')
+
+        identity_fields = {k: v for k, v in subject_data.items() if k not in ('id', 'context', 'description')}
         
         try:
             user = request.user.profile
@@ -178,10 +183,10 @@ class CreateCredentialView(APIView):
         
         identity_data = {
             'user': user.id,
-            'context': 'Test context',
-            'description': "Identity description",
+            'context': context,
+            'description': description,
             'is_active': True,
-            'raw_data': subject_data,
+            'raw_data': identity_fields,
         }
 
         serializer = IdentitySerializer(data=identity_data, context={'signature': signature })
@@ -198,7 +203,7 @@ class GetMyIdentitiesView(APIView):
     
     def post(self, request):    
         signature = request.data.get('signature')
-        
+
         if not signature:
             return Response({'error': 'Missing signature'}, status=status.HTTP_400_BAD_REQUEST)
         did = request.user.profile.did

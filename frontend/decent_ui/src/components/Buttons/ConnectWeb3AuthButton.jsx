@@ -7,8 +7,6 @@ import Button from '@mui/material/Button';
 import LoginIcon from '@mui/icons-material/Login';
 import { useNavigate } from "react-router-dom";
 
-import './Button.css';
-
 const ConnectWeb3AuthButton = () => {
     const { setAgent, setDid, setAccessToken, setIdentity, setSignature } = useAgent();
     const { connect, isConnected  } = useWeb3AuthConnect();

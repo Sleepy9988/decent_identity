@@ -1,7 +1,6 @@
 import React from 'react';
 import { useWeb3AuthConnect } from "@web3auth/modal/react";
 
-import { SubmitVCButton } from '../components/Buttons';
 import { checkDidOnChain } from '../components/helper.js';
 import { useAgent } from '../services/AgentContext';
 
@@ -21,48 +20,47 @@ const Dashboard = () => {
     const did_display = did.split(":")[3];
 
     return (
-        <Container>
+        <Box>
             <Box component="section" sx={{ mt: 4}}>
                 <Typography variant="h3" gutterBottom align="left">
                     Dashboard
                 </Typography>  
             </Box>
-            
-            <Box component="section" sx={{ mt: 4}}>
-                <Divider />
+            <Divider />
+            <Container component="section" sx={{ mt: 4}}>
                 <Card variant='outlined' sx={{ borderRadius: 3, p: 1, backgroundColor: '#1d2f40', mt: 5 }}>
                     <CardContent>
                         <Typography align="left" sx={{ fontSize: '1.5rem'}}>Logged in as:</Typography>
-                    
-                    <Box 
-                        sx={{
-                            mt: 1,
-                            p: 2,
-                            backgroundColor: '#2d4963',
-                            borderRadius: 2, 
-                            fontFamily: 'monospace',
-                            fontSize: '1.5rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                        }}
-                    >
-                        {did_display}
-                        <IconButton 
-                            aria-label="copy" 
-                            onClick={() => navigator.clipboard.writeText(did)}>
-                            <ContentCopyIcon fontSize="medium" />
-                        </IconButton>
-                    </Box>
+                        <Box 
+                            sx={{
+                                mt: 1,
+                                p: 2,
+                                backgroundColor: '#2d4963',
+                                borderRadius: 2, 
+                                fontFamily: 'monospace',
+                                fontSize: '1.5rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                            }}
+                        >
+                            {did_display}
+                            <IconButton 
+                                aria-label="copy" 
+                                onClick={() => navigator.clipboard.writeText(did)}>
+                                <ContentCopyIcon fontSize="medium" />
+                            </IconButton>
+                        </Box>
                     </CardContent>
                 </Card>
                 
                 <Button onClick={() => checkDidOnChain(did)}>Check did on Chain</Button>
-                <SubmitVCButton/>
-            </Box>
-            {id && <CardCarousel identities={id} />}
-            
-        </Container>
+            </Container>
+            <Divider sx={{mt: 5}}/>
+            <Container maxWidth="xl" sx={{ mt: 5 }}>
+                {id && <CardCarousel identities={id} />}
+            </Container>
+        </Box>
     );
 };
 
