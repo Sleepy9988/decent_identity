@@ -1,8 +1,7 @@
 
-export const logoutUser = async ({ setAgent, setDid, setAccessToken, disconnect }) => {
+export const logoutUser = async ({ setAgent, setDid, disconnect }) => {
     setAgent(null);
     setDid(null);
-    setAccessToken(null);
 
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');

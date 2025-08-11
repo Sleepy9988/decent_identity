@@ -37,3 +37,8 @@ class IdentitySerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
+class MassDeleteSerializer(serializers.Serializer):
+    ids = serializers.ListField(
+        child=serializers.UUIDField(format='hex_verbose'),
+        allow_empty=False
+    )

@@ -1,16 +1,20 @@
 import React, { useState, useMemo } from "react";
-import { Box, Button, Tooltip, InputLabel, TextField, IconButton } from "@mui/material";
+import { Box, Button, Tooltip, InputLabel, TextField, ToggleButton } from "@mui/material";
+import { DateField } from '@mui/x-date-pickers/DateField';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { SubmitVCButton } from "../Buttons";
+
+import dayjs from 'dayjs';
 
 export default function Form() {
     const [context, setContext] = useState('');
     const [description, setDescription] = useState('');
-    const [fields, setFields] = useState([{key: '', value: '', id: crypto.randomUUID() }]);
+    const [fields, setFields] = useState([{key: '', value: '', id: crypto.randomUUID(), isDate: false}]);
 
     const addFormField = () => {
         if (fields.length < 5) {
-            setFields(prev => [...prev, {key: '', value: '', id: crypto.randomUUID() }]);
+            setFields(prev => [...prev, {key: '', value: '', id: crypto.randomUUID(), isDate: false }]);
         }
     };
 
@@ -24,6 +28,12 @@ export default function Form() {
 
     const handleDelete = (indexToRemove) => {
         setFields(prev => prev.filter((_, index) => index !== indexToRemove));
+    }
+
+    const resetForm = () => {
+        setContext('');
+        setDescription('');
+        setFields([{key: '', value: '', id: crypto.randomUUID(), isDate: false }]);
     }
 
     const identityCredential = useMemo(() => {
@@ -51,6 +61,7 @@ export default function Form() {
                     <TextField
                         required
                         fullWidth
+                        value={context}
                         onChange={(e) => setContext(e.target.value)}
                         id="outlined"
                         label="Required"
@@ -63,6 +74,7 @@ export default function Form() {
                         multiline
                         rows={3}
                         fullWidth
+                        value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         label='Description'
                         variant='outlined'
@@ -87,19 +99,44 @@ export default function Form() {
                     </Box>
                     <Box>
                         <InputLabel sx={{ mb: 0.5, color:'white', fontSize: '1.5rem', textAlign: 'left' }}>Value {index + 1}</InputLabel>
-                        <TextField
-                            required
-                            value={field.value}
-                            onChange={(e) => handleUpdate(index, 'value', e.target.value)}
-                            placeholder="Enter Value"
-                            variant='outlined'
-                            size='small'
-                            sx={{ width: '500px'}}
-                        />
+                        {field.isDate ? (
+                            <DateField
+                                value={field.value ? dayjs(field.value) : null}
+                                onChange={(val) => {
+                                    if (!val || !val.isValid()) {
+                                        handleUpdate(index, 'value', null);
+                                        return;
+                                    }
+                                    handleUpdate(index, 'value', val.toDate().toISOString());
+                                }}
+                                sx={{ width: '500px' }}
+                            />
+                            
+                            ) : (
+                            <TextField
+                                required
+                                value={field.value}
+                                onChange={(e) => handleUpdate(index, 'value', e.target.value)}
+                                placeholder="Enter Value"
+                                variant='outlined'
+                                size='small'
+                                sx={{ width: '500px'}}
+                            />
+                        )}
                     </Box>
-                    <IconButton color="error" sx={{ mt: 5}} onClick={() => handleDelete(index)}>
-                        <DeleteIcon fontSize="large"/>
-                    </IconButton>
+                    <Box sx={{ mt: 5, display: 'flex', gap: 1}}>
+                        <ToggleButton 
+                            value='date' 
+                            selected={field.isDate} 
+                            onChange={() => handleUpdate(index, 'isDate', !field.isDate )} 
+                            sx={{mr: 2}}
+                        >
+                            <CalendarMonthIcon fontSize="small" />
+                        </ToggleButton>
+                        <ToggleButton onClick={() => handleDelete(index)}>
+                            <DeleteIcon fontSize="small" color="error"/>
+                        </ToggleButton>
+                    </Box>
                 </Box>
             ))}
             <Tooltip title="Add up to 5 fields" placement="right" arrow slotProps={{tooltip: { sx: { fontSize: '1rem'}}}}>
@@ -112,7 +149,7 @@ export default function Form() {
                 </Button>
             </Tooltip>
             <Box sx={{ pt: 3}}>
-                <SubmitVCButton payload={identityCredential}/>
+                <SubmitVCButton payload={identityCredential} onSuccess={resetForm} />
             </Box>
         </Box>
     )

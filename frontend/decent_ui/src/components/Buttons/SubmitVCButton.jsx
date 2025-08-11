@@ -1,12 +1,12 @@
 import React from "react";
-import { generateIdentityCredential } from "../helper";
+import { generateIdentityCredential, getIdentities } from "../helper";
 import { useAgent } from '../../services/AgentContext';
 
 import Button from '@mui/material/Button';
 import CreateIcon from '@mui/icons-material/Create';
 
-const SubmitVCButton = ({ payload }) => {
-    const { agent, did, signature } = useAgent();
+const SubmitVCButton = ({ payload, onSuccess }) => {
+    const { agent, did, signature, setIdentity } = useAgent();
     
     const handleClick = async () => {
         if (!agent || !did) {
@@ -19,9 +19,13 @@ const SubmitVCButton = ({ payload }) => {
         }
 
         try {
-            const accessToken = localStorage.getItem('accessToken');
-            const res = await generateIdentityCredential({ agent, did, accessToken, signature, payload });
-            console.log(res);
+            await generateIdentityCredential({ agent, did, signature, payload });
+
+            if (typeof onSuccess === "function") onSuccess();
+
+            const refreshed = await getIdentities(signature);
+            setIdentity(refreshed.identities);
+
         } catch (e) {
             console.error(e);
         }

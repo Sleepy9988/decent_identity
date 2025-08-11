@@ -25,10 +25,10 @@ const ConnectWeb3AuthButton = () => {
                 if (web3authProvider) {
                     const result  = await handleWeb3AuthLogin(web3authProvider, setAgent, setDid, setAccessToken, setSignature);
                     if (result) {
-                        const { authenticatedDid, accessToken, signature } = result;
+                        const { authenticatedDid, signature } = result;
                         setDid(authenticatedDid);
                         setSignature(signature);
-                        const ids = await getIdentities(accessToken, signature);
+                        const ids = await getIdentities(signature);
                         setIdentity(ids.identities);
                         navigate('/dashboard');
                     }

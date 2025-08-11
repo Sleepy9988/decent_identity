@@ -12,7 +12,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .utils import verify_with_veramo
-from .serializers import IdentitySerializer
+from .serializers import IdentitySerializer, MassDeleteSerializer
+from django.db import transaction
 
 # Import supporting Python libraries
 import secrets
@@ -213,3 +214,30 @@ class GetMyIdentitiesView(APIView):
         
         return Response({'identities': serializer.data}, status=status.HTTP_200_OK)
         
+class IdentityDeleteView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        auth = request.META.get('HTTP_AUTHORIZATION')
+        logger.debug('Auth header -> %s', auth)
+        serializer = MassDeleteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        ids = serializer.validated_data['ids']
+
+        try: 
+            profile = request.user.profile
+        except Profile.DoesNotExist:
+            return Response({'error': 'Profile does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        el = Identity.objects.filter(user=profile, id__in=ids)
+        if not el.exists():
+            return Response({'error': 'No matching identities found'}, status=status.HTTP_404_NOT_FOUND)
+
+        with transaction.atomic():
+            el.delete()
+
+        return Response({
+            'success': True, 
+            'deletion_count': len(ids),
+        }, status=status.HTTP_200_OK)

@@ -4,7 +4,8 @@ from .api import (
     LoginChallengeView, 
     DIDExistsView, 
     CreateCredentialView,
-    GetMyIdentitiesView
+    GetMyIdentitiesView,
+    IdentityDeleteView
 )
 
 urlpatterns = [
@@ -12,5 +13,6 @@ urlpatterns = [
       path('authentication/challenge', LoginChallengeView.as_view(), name='authentication_challenge'),
       path('did/<str:did>/exists', DIDExistsView.as_view(), name='check_did_exists'),
       path('credential/verify', CreateCredentialView.as_view(), name='verify_credential'),
-      path('me/identities/', GetMyIdentitiesView.as_view(), name='get_identities')
+      path('me/identities/', GetMyIdentitiesView.as_view(), name='get_identities'),
+      path('identity/delete/', IdentityDeleteView.as_view(), name='delete_identities')
 ]

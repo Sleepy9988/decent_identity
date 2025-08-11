@@ -98,10 +98,13 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
     'DEFAULT_PERMISSION_CLASSES': [
-        #'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.permissions.AllowAny', # Dev setting
-    ]
+        #'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
 ROOT_URLCONF = 'identity_backend.urls'

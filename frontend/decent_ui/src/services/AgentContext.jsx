@@ -11,30 +11,29 @@ export const useAgent = () => useContext(AgentContext);
 
 export const AgentProvider = ({ children }) => {
     const [agent, setAgent] = useState(null);
-    const [did, setDid] = useState(null);
-    const [accessToken, setAccessToken] = useState(null);
+    const [did, setDid] = useState(() => localStorage.getItem('did'));
+    //const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken'));
     const [signature, setSignature] = useState(null);
     const [id, setIdentity] = useState([]);
 
     const { connect, isConnected, disconnect } = useWeb3AuthConnect();
     
     const handleLogout = () => {
-        logoutUser({ setAgent, setDid, setAccessToken, disconnect });
+        logoutUser({ setAgent, setDid, disconnect });
     }
 
     useEffect(() => {
         const restoreSession = async () => {
             const storedDid = localStorage.getItem('did');
-            const storedToken = localStorage.getItem('accessToken');
             const signature = localStorage.getItem('signature');
 
             if (storedDid) setDid(storedDid);
-            if (storedToken) setAccessToken(storedToken);
+            if (signature) setSignature(signature);
 
-            if (!isConnected && storedDid && storedToken) {
+            if (!isConnected && storedDid) {
                 try {
                     await connect();
-                    const ids = await getIdentities(storedToken, signature);
+                    const ids = await getIdentities(signature);
                     setIdentity(ids.identities);
                 } catch (err) {
                     console.warn("Token refresh failed. Logging out.", err);
@@ -52,14 +51,6 @@ export const AgentProvider = ({ children }) => {
             localStorage.removeItem('did');
         }
     }, [did]);
-
-    useEffect(() => {
-        if (accessToken) {
-            localStorage.setItem('accessToken', accessToken);
-        } else {
-            localStorage.removeItem('accessToken');
-        }
-    }, [accessToken]);
 
     useEffect(() => {
         if (signature) {
@@ -83,24 +74,23 @@ export const AgentProvider = ({ children }) => {
 
             if (isTokenExpired(token)) {
                 try {
-                    const newAccessToken = await refreshAccessToken(refreshToken);
-                    setAccessToken(newAccessToken);
+                    const newAccess = await refreshAccessToken(refreshToken);
+                    localStorage.setItem('accessToken', newAccess);
                     console.log('Access token refreshed');
                 } catch (err) {
                     console.warn('Refresh failed, logging out.', err);
                     handleLogout();
                 }
-            } else {
-                setAccessToken(token);
-            }
-        }, 5 * 60 * 1000);
+        }
+    },  5 * 60 * 1000);
+    
         return () => clearInterval(interval);
     }, [agent, did]);
 
     return (
         <AgentContext.Provider 
             value={{ 
-                agent, setAgent, did, setDid, accessToken, setAccessToken, id, setIdentity, signature, setSignature
+                agent, setAgent, did, setDid, id, setIdentity, signature, setSignature
             }}
         >
             { children }

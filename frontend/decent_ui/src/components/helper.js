@@ -60,7 +60,8 @@ export async function anchorDid() {
 }
 
 
-export const generateIdentityCredential = async ({ agent, did, accessToken, signature, payload}) => {
+export const generateIdentityCredential = async ({ agent, did, signature, payload}) => {
+    const token = localStorage.getItem('accessToken');
     const { context, description, subject = {} } = payload || {};
 
     const issuanceDate = new Date().toISOString();
@@ -89,7 +90,7 @@ export const generateIdentityCredential = async ({ agent, did, accessToken, sign
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`, 
+            'Authorization': `Bearer ${token}`, 
          },
         credentials: 'include',
         body: JSON.stringify({ 
@@ -156,15 +157,15 @@ export const checkDIDProfile = async ({ agent, did }) => {
 }
 
 
-export const getIdentities = async (accessToken, signature) => {
-
+export const getIdentities = async (signature) => {
+    const token = localStorage.getItem('accessToken');
     const response = await fetch(
         `http://localhost:8000/api/me/identities/`,
         { 
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': `application/json`,
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
             },
             credentials: 'include',
             body: JSON.stringify({ signature })
@@ -178,6 +179,33 @@ export const getIdentities = async (accessToken, signature) => {
         throw new Error(data.detail || 'Error fetching identities')
     }
 
-    //console.log('Fetched identities:', data);
     return data;
-}
+};
+
+export const deleteIdentities = async (ids) => {
+    const token = localStorage.getItem('accessToken');
+    if (!Array.isArray(ids) || ids.length === 0) {
+        throw new Error('No identity provided.');
+    }
+    try {
+        const response = await fetch(`http://localhost:8000/api/identity/delete/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ ids }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || 'Error deleting identities');
+        }
+        return data;
+    } catch (err) {
+        console.error('Failed to delete identities:', err);
+        throw err;
+    }
+};

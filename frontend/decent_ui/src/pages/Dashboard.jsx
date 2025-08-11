@@ -5,7 +5,6 @@ import { checkDidOnChain } from '../components/helper.js';
 import { useAgent } from '../services/AgentContext';
 
 import { Box, Container, Typography, Button, Card, CardContent, Divider } from '@mui/material';
-import CardActions from '@mui/material/CardActions';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IconButton from '@mui/material/IconButton';
 import CardCarousel from '../components/Misc/Carousel';
@@ -58,6 +57,9 @@ const Dashboard = () => {
             </Container>
             <Divider sx={{mt: 5}}/>
             <Container maxWidth="xl" sx={{ mt: 5 }}>
+                <Typography variant="h5" sx={{textAlign: 'start', mb: 3}}>
+                    Existing Identities
+                </Typography>
                 {id && <CardCarousel identities={id} />}
             </Container>
         </Box>
