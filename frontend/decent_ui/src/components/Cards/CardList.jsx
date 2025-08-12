@@ -3,11 +3,11 @@ import { Box, Typography, Checkbox, FormControlLabel, Button, ButtonGroup } from
 import DeleteIcon from '@mui/icons-material/Delete';
 import ShareIcon from '@mui/icons-material/Share';
 import DownloadIcon from '@mui/icons-material/Download';
-import SpeedDialIcon from '@mui/material/SpeedDialIcon';
 import IdentityCard from "./IdentityCard";
 
 import { useAgent } from '../../services/AgentContext';
 import { deleteIdentities } from "../helper";
+import { handleDownload } from "../../utils/download";
 
 export default function CardList({ identities }) {
     const { setIdentity} = useAgent();
@@ -22,7 +22,7 @@ export default function CardList({ identities }) {
     const total = identities.length;
     const numSelected = selected.size;
     const allSelected = numSelected === total && total > 0;
-    const someSelected = numSelected > 0 && numSelected < total;
+    const someSelected = numSelected > 0 && numSelected < total;   
 
     const toggleSelectAll = useCallback((e) => {
         if (e.target.checked) {
@@ -86,7 +86,7 @@ export default function CardList({ identities }) {
                 </Box>
                 <Box sx={{flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
                     <ButtonGroup variant='outlined' disabled={!someSelected && !allSelected}>
-                        <Button startIcon={<DownloadIcon />}>Download</Button>
+                        <Button startIcon={<DownloadIcon />} onClick={() => handleDownload('test', identities, [...selected])}>Download</Button>
                         <Button startIcon={<ShareIcon />}>Share</Button>
                         <Button startIcon={<DeleteIcon />} onClick={handleMassDelete}>Delete</Button>
                     </ButtonGroup>
