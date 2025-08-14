@@ -241,3 +241,24 @@ class IdentityDeleteView(APIView):
             'success': True, 
             'deletion_count': len(ids),
         }, status=status.HTTP_200_OK)
+    
+
+class GetContexts(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, did, *args, **kwargs):    
+        try: 
+            profile = Profile.objects.get(did=did)
+        except Profile.DoesNotExist:
+            return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        contexts = (
+            Identity.objects
+            .filter(user=profile, is_active=True)
+            .values_list('context', flat=True)
+        )
+
+        return Response({'contexts': list(contexts)}, status=status.HTTP_200_OK)
+
+    

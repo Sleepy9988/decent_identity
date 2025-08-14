@@ -7,7 +7,7 @@ import { SubmitVCButton } from "../Buttons";
 
 import dayjs from 'dayjs';
 
-export default function Form() {
+export default function IdentityForm() {
     const [context, setContext] = useState('');
     const [description, setDescription] = useState('');
     const [fields, setFields] = useState([{key: '', value: '', id: crypto.randomUUID(), isDate: false}]);

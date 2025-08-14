@@ -20,16 +20,16 @@ const Dashboard = () => {
 
     return (
         <Box>
-            <Box component="section" sx={{ mt: 4}}>
-                <Typography variant="h3" gutterBottom align="left">
+            <Box component='section' sx={{ mt: 4}}>
+                <Typography variant='h3' gutterBottom align='left'>
                     Dashboard
                 </Typography>  
             </Box>
             <Divider />
-            <Container component="section" sx={{ mt: 4}}>
+            <Container component='section' sx={{ mt: 4}}>
                 <Card variant='outlined' sx={{ borderRadius: 3, p: 1, backgroundColor: '#1d2f40', mt: 5 }}>
                     <CardContent>
-                        <Typography align="left" sx={{ fontSize: '1.5rem'}}>Logged in as:</Typography>
+                        <Typography align='left' sx={{ fontSize: '1.5rem'}}>Logged in as:</Typography>
                         <Box 
                             sx={{
                                 mt: 1,
@@ -45,9 +45,9 @@ const Dashboard = () => {
                         >
                             {did_display}
                             <IconButton 
-                                aria-label="copy" 
+                                aria-label='copy' 
                                 onClick={() => navigator.clipboard.writeText(did)}>
-                                <ContentCopyIcon fontSize="medium" />
+                                <ContentCopyIcon fontSize='medium' />
                             </IconButton>
                         </Box>
                     </CardContent>
@@ -56,8 +56,8 @@ const Dashboard = () => {
                 <Button onClick={() => checkDidOnChain(did)}>Check did on Chain</Button>
             </Container>
             <Divider sx={{mt: 5}}/>
-            <Container maxWidth="xl" sx={{ mt: 5 }}>
-                <Typography variant="h5" sx={{textAlign: 'start', mb: 3}}>
+            <Container maxWidth='xl' sx={{ mt: 5 }}>
+                <Typography variant='h5' sx={{textAlign: 'start', mb: 3}}>
                     Existing Identities
                 </Typography>
                 {id && <CardCarousel identities={id} />}

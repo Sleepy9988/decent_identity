@@ -42,3 +42,4 @@ class MassDeleteSerializer(serializers.Serializer):
         child=serializers.UUIDField(format='hex_verbose'),
         allow_empty=False
     )
+

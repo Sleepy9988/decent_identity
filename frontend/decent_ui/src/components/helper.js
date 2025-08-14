@@ -209,3 +209,32 @@ export const deleteIdentities = async (ids) => {
         throw err;
     }
 };
+
+export const getContexts = async (did) => {
+    const token = localStorage.getItem('accessToken');
+    
+    if (!did) throw new Error('Missing DID');
+    const didStr = String(did);
+    const encDid = encodeURIComponent(didStr);
+
+    try {
+        const response = await fetch(`http://localhost:8000/api/users/${encDid}/contexts/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || 'Error obtaining contexts');
+        }
+        return data;
+    } catch (err) {
+        console.error('Failed to fetch contexts', err);
+        throw err;
+    }
+};

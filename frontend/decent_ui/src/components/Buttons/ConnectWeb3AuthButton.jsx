@@ -35,7 +35,7 @@ const ConnectWeb3AuthButton = () => {
                 }
             }}
         >
-            Login with Web3Auth
+            Login
         </Button>
     );
 }

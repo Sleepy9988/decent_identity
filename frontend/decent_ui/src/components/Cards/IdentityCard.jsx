@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Box, Fab, Card, Typography, CardContent, Divider, Tooltip, CardHeader } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-
+import CloseIcon from '@mui/icons-material/Close';
 import { deleteIdentities } from '../helper';
 import { useLocation } from "react-router-dom";
 
