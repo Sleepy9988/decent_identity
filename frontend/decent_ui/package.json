@@ -31,8 +31,10 @@
     "@web3auth/openlogin-adapter": "^8.12.4",
     "dayjs": "^1.11.13",
     "ethr-did": "^3.0.38",
+    "install": "^0.13.0",
     "jwt-decode": "^4.0.0",
     "process": "^0.11.10",
+    "qrcode.react": "^4.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.7.0"

@@ -19,7 +19,11 @@ export async function handleWeb3AuthLogin(web3authProvider, setAgent) {
         const publicKeyHex = publicKey.slice(4);
 
         const network = await ethersProvider.getNetwork();
-        //const address = await signer.getAddress();
+        const address = await signer.getAddress();
+        const balance = await ethersProvider.getBalance(address);
+        const transaction_count = await ethersProvider.getTransactionCount(address);
+        console.log(balance);
+        console.log("transaction" + transaction_count)
         console.log(network.name, network.chainId);
 
         const agentWrapper = new VeramoAgentWrapper(ethersProvider, signer, publicKeyHex);

@@ -238,3 +238,63 @@ export const getContexts = async (did) => {
         throw err;
     }
 };
+
+
+export const postRequest = async ({did, agent, holderDid, contextId, purpose}) => {
+    const token = localStorage.getItem('accessToken');
+
+    const challengeResponse = await fetch(
+        'http://localhost:8000/api/requests/challenge', 
+        {credentials: 'include'}
+    );
+    
+    const { challenge } = await challengeResponse.json();
+    
+    const issuanceDate = new Date().toISOString();
+
+    const vc_request = await agent.createVerifiableCredential({
+        credential: {
+            '@context': ["https://www.w3.org/ns/credentials/v2"],
+            type: ['VerifiableCredential', 'RequestCredential'],
+            issuer: { id: did },
+            issuanceDate,
+            credentialSubject: {
+                requestorDid: did,
+                holderDid,
+                contextId,
+                purpose
+            },
+        },
+        proofFormat: 'EthereumEip712Signature2021',
+    });
+
+    // Create Verifiable Presentation, sign with EIP-712
+    const presentation = await agent.createVerifiablePresentation({
+        presentation: {
+            '@context': ['https://www.w3.org/2018/credentials/v1'],
+            type: ['VerifiablePresentation'],
+            holder: did, 
+            issuanceDate: new Date().toISOString(),
+            verifiableCredential: [vc_request],
+            challenge,
+        },
+        proofFormat: 'EthereumEip712Signature2021',
+    });
+
+    // Send VP and challenge to the backend for verification and authentication
+    const createResponse = await fetch('http://localhost:8000/api/request/create', {
+        method: 'POST',
+        headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ presentation, challenge })
+    });
+
+    const result = await createResponse.json()
+
+    if (!createResponse.ok) {
+        throw new Error(result.error || 'Failed to create request.');
+    }
+    return result;
+}

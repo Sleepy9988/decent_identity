@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Box, InputBase, Button, IconButton, Paper, Divider, Typography, List, ListItem, ListItemText, Snackbar, Alert } from "@mui/material";
 import { getContexts } from '../helper';
+import FormDialog from './RequestFormDialog';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
-import BadgeIcon from '@mui/icons-material/Badge';
+import { postRequest } from "../helper";
+import { useAgent } from '../../services/AgentContext';
 
 export default function RequestForm() {
     const [value, setValue] = useState('');
@@ -11,6 +13,9 @@ export default function RequestForm() {
     const [loading, setLoading] = useState(false);
     const [err, setError] = useState(null);
     const [open, setOpen] = useState(false);
+    const [reqStatus, setReqStatus] = useState(null);
+
+    const { agent, did } = useAgent();
     
     const handleClick = async (e) => {
         e.preventDefault();
@@ -35,6 +40,17 @@ export default function RequestForm() {
             setLoading(false);
         }
     };
+
+    const handlePostRequest = async (contextId, purpose) => {
+        try {
+            const holderDid = value;
+            setReqStatus('Submitting request...');
+            const reqResponse = await postRequest({did, agent, holderDid, contextId, purpose});
+            console.log(reqResponse);
+        } catch (err) {
+            setReqStatus('Failed to send request.', err);
+        }
+    }
    
     const handleClose = (e, reason) => {
         if (reason === 'clickaway') {
@@ -112,12 +128,15 @@ export default function RequestForm() {
                         <Typography sx={{ fontSize: '1.2rem'}}>No public identities found.</Typography>
                     ) : (
                         contexts.map((c) => 
-                            <List sx={{ width: '100%', maxWidth: 600, bgcolor: 'background.paper' }}>
+                            <List key={c.id} sx={{ width: '100%', maxWidth: 600, bgcolor: 'background.paper' }}>
                                 <ListItem 
-                                    key={c}
-                                    secondaryAction={ <Button aria-label="request" variant="outlined" endIcon={<BadgeIcon />}> Request</Button>}    
+                                    secondaryAction={ 
+                                        <FormDialog 
+                                            contextId={c.id}
+                                            onSubmitRequest={(purpose) => handlePostRequest(c.id, purpose)} />
+                                    }    
                                 > 
-                                    <ListItemText primary={c} />
+                                    <ListItemText primary={c.context} />
                                 </ListItem>
                             </List>
                         )

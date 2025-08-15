@@ -1,18 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useWeb3AuthConnect } from "@web3auth/modal/react";
 
 import { checkDidOnChain } from '../components/helper.js';
 import { useAgent } from '../services/AgentContext';
 
-import { Box, Container, Typography, Button, Card, CardContent, Divider } from '@mui/material';
+import { Box, Container, Typography, Button, Card, CardContent, Divider, ButtonGroup, Dialog, DialogContent} from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IconButton from '@mui/material/IconButton';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
 import CardCarousel from '../components/Misc/Carousel';
+
+import { QRCodeCanvas } from 'qrcode.react';
 
 const Dashboard = () => {
     const { isConnected } = useWeb3AuthConnect();
     const { did, id } = useAgent();
     const loggedIn = isConnected && did;
+    const [qrOpen, setQROpen] = useState(false);
     
     if (!loggedIn) return null;
 
@@ -44,15 +48,24 @@ const Dashboard = () => {
                             }}
                         >
                             {did_display}
-                            <IconButton 
-                                aria-label='copy' 
-                                onClick={() => navigator.clipboard.writeText(did)}>
-                                <ContentCopyIcon fontSize='medium' />
-                            </IconButton>
+                            <ButtonGroup variant="outlined" aria-label="copy and QR button">
+                                <IconButton onClick={() => setQROpen(true)}>
+                                    <QrCode2Icon fontSize='medium'/>
+                                </IconButton>
+                                <IconButton 
+                                    aria-label='copy' 
+                                    onClick={() => navigator.clipboard.writeText(did)}>
+                                    <ContentCopyIcon fontSize='medium' />
+                                </IconButton>
+                            </ButtonGroup>
                         </Box>
                     </CardContent>
                 </Card>
-                
+                <Dialog open={qrOpen} onClose={() => setQROpen(false)}>
+                    <DialogContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4}}>
+                        <QRCodeCanvas value={did} size={240} />
+                    </DialogContent>
+                </Dialog>
                 <Button onClick={() => checkDidOnChain(did)}>Check did on Chain</Button>
             </Container>
             <Divider sx={{mt: 5}}/>
@@ -62,6 +75,7 @@ const Dashboard = () => {
                 </Typography>
                 {id && <CardCarousel identities={id} />}
             </Container>
+            
         </Box>
     );
 };

@@ -22,7 +22,7 @@ const Requests = () => {
                 <Tabs value={value} onChange={handleChange} centered>
                     <Tab label='New Request' sx={{fontSize: '1rem', mr: 5}} value="1" />
                     <Tab label='Received Requests' sx={{fontSize: '1rem', mr: 5}} value="2" />
-                    <Tab label='Past Requests' sx={{fontSize: '1rem'}} value="3" />
+                    <Tab label='Created Requests' sx={{fontSize: '1rem'}} value="3" />
                 </Tabs>
                 {value === "1" && <RequestForm />}
             </Container>
