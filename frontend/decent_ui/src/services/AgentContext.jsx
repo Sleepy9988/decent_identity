@@ -14,6 +14,8 @@ export const AgentProvider = ({ children }) => {
     const [did, setDid] = useState(() => localStorage.getItem('did'));
     const [signature, setSignature] = useState(null);
     const [id, setIdentity] = useState([]);
+    const [socket, setSocket] = useState(null);
+    const [notifications, setNotifications] = useState([]);
 
     const { disconnect } = useWeb3AuthConnect();
     
@@ -93,10 +95,45 @@ export const AgentProvider = ({ children }) => {
         return () => clearInterval(interval);
     }, [handleLogout, agent, did]);
 
+
+    useEffect(() => {
+        const token = localStorage.getItem('accessToken');
+        if (did && !socket) {
+            try {
+                const newSocket = new WebSocket(`ws://localhost:8001/ws/notifications/${encodeURIComponent(did)}/?token=${encodeURIComponent(token)}`);
+
+                newSocket.onopen = () => {
+                    console.log("WebSocket connected.");
+
+                };
+                newSocket.onmessage = (e) => {
+                    const data = JSON.parse(e.data);
+                    setNotifications(prev => [...prev, data]);
+                };
+
+                newSocket.onclose = (e) => {
+                    console.log("WebSocket disconnected.", e);
+                    setSocket(null);
+                }
+
+                newSocket.onerror = (err) => {
+                    console.error("WebSocket error:", err);
+                } 
+            } catch (err) {
+                console.error("Failed to establish WebSocket conenction", err);
+            }
+        }
+        return () => {
+            if (socket) {
+                socket.close();
+            }
+        };
+    }, [did, socket]);
+
     return (
         <AgentContext.Provider 
             value={{ 
-                agent, setAgent, did, setDid, id, setIdentity, signature, setSignature
+                agent, setAgent, did, setDid, id, setIdentity, signature, setSignature, notifications
             }}
         >
             { children }

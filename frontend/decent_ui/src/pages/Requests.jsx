@@ -11,18 +11,16 @@ const Requests = () => {
     const [value, setValue] = useState("1");
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [err, setErr] = useState(null);
     
     const { did } = useAgent();
 
     const loadRequest = async () => {
         try {
-            setErr(null);
             setLoading(true);
             const res = await getRequests();
             setRequests(res.results || []);
-        } catch (e) {
-            setErr(e);
+        } catch (err) {
+            console.error(err);
         } finally {
             setLoading(false);
         }
@@ -62,14 +60,14 @@ const Requests = () => {
                     <> 
                         {loading && <Typography sx={{ mt: 3 }}>Loading...</Typography>}
                         
-                        {!loading && <RequestCardList requests={received_reqs} />}
+                        {!loading && <RequestCardList requests={received_reqs} canDecide={true}/>}
                     </>
                 )}
                 {value == "3" && (
                     <> 
                         {loading && <Typography sx={{ mt: 3 }}>Loading...</Typography>}
                         
-                        {!loading && <RequestCardList requests={created_reqs} />}
+                        {!loading && <RequestCardList requests={created_reqs} canDecide={false}/>}
                     </>
                 )}
             </Container>

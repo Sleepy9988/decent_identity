@@ -5,7 +5,7 @@ import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import { updateRequest } from "../helper";
 
-export default function RequestCardList({ requests }) {
+export default function RequestCardList({ requests, canDecide }) {
     const getStatusIcon = (status) => {
         switch(status) {
             case "Pending": return <PendingIcon color="primary" />;
@@ -55,10 +55,17 @@ export default function RequestCardList({ requests }) {
                             </Typography>
                         </Box>
                     </CardContent>
-                    <CardActions>
-                        <Button size="medium" color="success" onClick={() => handleRequestUpdata(r.id, 'approve', null, '2025-12-01')}>Approve</Button>
-                        <Button size="medium" color="error" onClick={() => handleRequestUpdata(r.id, 'decline', 'Not sufficient')}>Decline</Button>
-                    </CardActions>
+                    {canDecide ? (
+                        <CardActions>
+                            <Button size="medium" color="success" onClick={() => handleRequestUpdata(r.id, 'approve', null, '2025-12-01')}>Approve</Button>
+                            <Button size="medium" color="error" onClick={() => handleRequestUpdata(r.id, 'decline', 'Not sufficient')}>Decline</Button>
+                        </CardActions>
+                    ) : ( 
+                        <CardActions>
+                            <Button size="medium" color="primary">Cancel Request</Button>
+                        </CardActions>
+                    )
+                    }
                 </Card>
                 )
             })}

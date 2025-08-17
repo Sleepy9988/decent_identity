@@ -1,28 +1,29 @@
 import React, { useState } from "react";
-import { Box, InputBase, Button, IconButton, Paper, Divider, Typography, List, ListItem, ListItemText, Snackbar, Alert } from "@mui/material";
+import { Box, InputBase, Button, IconButton, Paper, Divider, Typography, List, ListItem, ListItemText } from "@mui/material";
 import { getContexts } from '../helper';
 import FormDialog from './RequestFormDialog';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import { postRequest } from "../helper";
 import { useAgent } from '../../services/AgentContext';
+import SnackbarAlert from "../Misc/Snackbar";
 
 export default function RequestForm({ onNewRequest }) {
     const [value, setValue] = useState('');
     const [contexts, setContexts] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [err, setError] = useState(null);
+    const [message, setMessage] = useState(null);
     const [open, setOpen] = useState(false);
-    const [reqStatus, setReqStatus] = useState(null);
+    const [alertType, setAlertType] = useState('error');
 
     const { agent, did } = useAgent();
     
     const handleClick = async (e) => {
         e.preventDefault();
-        setError(null);
+        setMessage(null);
         
         if (!value.trim().startsWith('did:ethr:sepolia:') || value.length != 59) {
-            setError('Please enter a valid DID starting with did:ethr:sepolia:...');
+            setMessage('Please enter a valid DID starting with did:ethr:sepolia:...');
             setOpen(true);
             return;
         }
@@ -32,10 +33,9 @@ export default function RequestForm({ onNewRequest }) {
             setLoading(true);
             const response = await getContexts(did);
             setContexts(response.contexts);
-        } catch (e) {
+        } catch (err) {
             setOpen(true);
-            console.error(e);
-            setError('Error obtaining contexts');
+            setMessage('Error obtaining contexts', err);
         } finally {
             setLoading(false);
         }
@@ -44,41 +44,25 @@ export default function RequestForm({ onNewRequest }) {
     const handlePostRequest = async (contextId, purpose) => {
         try {
             const holderDid = value;
-            setReqStatus('Submitting request...');
-            const reqResponse = await postRequest({did, agent, holderDid, contextId, purpose});
+            await postRequest({did, agent, holderDid, contextId, purpose});
+            
+            setMessage('Request sent successfully');
+            setAlertType('success');
+            setOpen(true);
+
             onNewRequest();
-            console.log(reqResponse);
         } catch (err) {
-            setReqStatus('Failed to send request.', err);
+            console.error(err);
+            setMessage('Failed to send request.');
+            setAlertType('error');
+            setOpen(true);
         }
-    }
-   
-    const handleClose = (e, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setOpen(false);
     }
 
     const clearValue = () => {
         setValue('');
     }
-
-    const action = (
-        <React.Fragment>
-            <Button color="secondary" size="small" onClick={handleClose}>
-                <IconButton
-                    size="small"
-                    aria-label="close"
-                    color="error"
-                    onClick={handleClose}
-                >
-                    <CloseIcon fontSize="small" />
-                </IconButton>
-            </Button>
-        </React.Fragment>
-    );
-
+   
     return (
         <Box sx={{mt: 5}}>
             <Paper
@@ -106,27 +90,12 @@ export default function RequestForm({ onNewRequest }) {
             </Paper>
 
             {loading && <Typography>Loading...</Typography>}
-            <Snackbar 
-                anchorOrigin={{vertical: 'top', horizontal: 'center' }}
-                open={open}
-                autoHideDuration={5000}
-                onClose={handleClose}
-                action={action}
-            >
-                <Alert
-                    onClose={handleClose}
-                    severity="error"
-                    variant="filled"
-                    sx={{ width: '100%'}}
-                >
-                    {err}
-                </Alert>
-            </Snackbar>
+            <SnackbarAlert msg={message} open={open} setOpen={setOpen} type={alertType} />
 
             {contexts && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems:'center', gap: 1, mb: 5 }}>
                     {contexts.length === 0 ? (
-                        <Typography sx={{ fontSize: '1.2rem'}}>No public identities found.</Typography>
+                        <Typography sx={{ fontSize: '1.2rem'}}>No public identities available.</Typography>
                     ) : (
                         contexts.map((c) => 
                             <List key={c.id} sx={{ width: '100%', maxWidth: 600, bgcolor: 'background.paper' }}>
