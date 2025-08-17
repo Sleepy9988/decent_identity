@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { isTokenExpired } from '../utils/tokenExpiration.js';
 import { refreshAccessToken } from '../utils/refreshToken.js';
 import { useWeb3AuthConnect } from "@web3auth/modal/react";
@@ -12,37 +12,45 @@ export const useAgent = () => useContext(AgentContext);
 export const AgentProvider = ({ children }) => {
     const [agent, setAgent] = useState(null);
     const [did, setDid] = useState(() => localStorage.getItem('did'));
-    //const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken'));
     const [signature, setSignature] = useState(null);
     const [id, setIdentity] = useState([]);
 
-    const { connect, isConnected, disconnect } = useWeb3AuthConnect();
+    const { disconnect } = useWeb3AuthConnect();
     
-    const handleLogout = () => {
+    const handleLogout = useCallback(() => {
         logoutUser({ setAgent, setDid, disconnect });
-    }
+    }, [setAgent, setDid, disconnect]);
 
-    useEffect(() => {
-        const restoreSession = async () => {
-            const storedDid = localStorage.getItem('did');
-            const signature = localStorage.getItem('signature');
+    const restoreSession = useCallback(async () => {
+        const storedDid = localStorage.getItem('did');
+        const accessToken = localStorage.getItem('accessToken');
+        const refreshToken = localStorage.getItem('refreshToken');
+        const signature = localStorage.getItem('signature');
 
-            if (storedDid) setDid(storedDid);
-            if (signature) setSignature(signature);
-
-            if (!isConnected && storedDid) {
-                try {
-                    await connect();
-                    const ids = await getIdentities(signature);
-                    setIdentity(ids.identities);
-                } catch (err) {
-                    console.warn("Token refresh failed. Logging out.", err);
-                    handleLogout();
-                }
+        if (storedDid && accessToken && !isTokenExpired(accessToken)) {
+            try {
+                const ids = await getIdentities(signature);
+                setIdentity(ids.identities);
+            } catch (err) {
+                console.warn(err);
+                handleLogout();
             }
-        };
+        } else if (storedDid) {
+            try {
+                const newAccess = await refreshAccessToken(refreshToken);
+                localStorage.setItem('accessToken', newAccess);
+                const ids = await getIdentities(signature);
+                setIdentity(ids.identities);
+            } catch (err) {
+                console.warn(err);
+                handleLogout();
+            }
+        }
+    }, [handleLogout, setIdentity]);
+    
+    useEffect(() => {
         restoreSession();
-    }, []);
+    }, [restoreSession]);
 
     useEffect(() => {
         if (did) {
@@ -50,15 +58,13 @@ export const AgentProvider = ({ children }) => {
         } else {
             localStorage.removeItem('did');
         }
-    }, [did]);
-
-    useEffect(() => {
         if (signature) {
             localStorage.setItem('signature', signature);
         } else {
             localStorage.removeItem('signature');
         }
-    }, [signature]);
+
+    }, [did, signature]);
    
     useEffect(() => {
         const interval = setInterval(async () => {
@@ -85,7 +91,7 @@ export const AgentProvider = ({ children }) => {
     },  5 * 60 * 1000);
     
         return () => clearInterval(interval);
-    }, [agent, did]);
+    }, [handleLogout, agent, did]);
 
     return (
         <AgentContext.Provider 

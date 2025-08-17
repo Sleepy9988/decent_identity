@@ -5,15 +5,19 @@ import Login from './pages/Login.jsx';
 import Identity from './pages/Identity.jsx';
 import Requests from './pages/Requests.jsx';
 
+import ProtectedRoute from './components/Misc/ProtectedRoute.jsx';
+
 function App() {
   return (
     <Router>
       <Layout>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/dashboard" element={<Home />} />
-          <Route path="/identities" element={<Identity />} />
-          <Route path="/requests" element={<Requests />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<Home />} />
+            <Route path="/identities" element={<Identity />} />
+            <Route path="/requests" element={<Requests />} />
+          </Route>
         </Routes>
       </Layout>
     </Router>

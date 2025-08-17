@@ -18,7 +18,7 @@ export default function FormDialog({ onSubmitRequest }) {
         const formData = new FormData(e.currentTarget);
         const formJson = Object.fromEntries(formData.entries());
         const purpose = formJson.purpose;
-        
+
         onSubmitRequest(purpose);
         handleClose();
     }
@@ -30,7 +30,7 @@ export default function FormDialog({ onSubmitRequest }) {
                 <DialogTitle>Request Access</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Please provide the reason for your access request. The identity owner will be notified and will then make a decision.
+                        Please provide the reason for your access request, including your name. The identity owner will be notified and will then make a decision.
                     </DialogContentText>
                     <form onSubmit={handleSubmit} id="request-form">
                         <TextField 

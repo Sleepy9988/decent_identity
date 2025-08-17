@@ -2,21 +2,22 @@ import React from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import SidebarLeft from './sidebar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Container from '@mui/material/Container';
-import CssBaseline from '@mui/material/CssBaseline';
+
+import { Box, Toolbar, Container, CssBaseline } from "@mui/material";
+
 import { useLocation } from 'react-router-dom';
 
 const Layout = ({ children }) => {
     const location = useLocation();
     const showSidebar = location.pathname !== '/'; 
+    const isLoginPage = location.pathname === '/';
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh' }}>
             <CssBaseline />
             <Header />
             {showSidebar && <SidebarLeft />}
             <Box 
+                component="main"
                 sx={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -25,7 +26,7 @@ const Layout = ({ children }) => {
             >
                 <Toolbar />
                 <Box sx={{ pt: 4}}>
-                    {location.pathname === '/' ? (
+                    {isLoginPage ? (
                         children
                     ) : (
                     <Container maxWidth={false} align='center'>{children}</Container>

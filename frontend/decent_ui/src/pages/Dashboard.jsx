@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { useWeb3AuthConnect } from "@web3auth/modal/react";
-
 import { checkDidOnChain } from '../components/helper.js';
 import { useAgent } from '../services/AgentContext';
 
@@ -13,13 +11,9 @@ import CardCarousel from '../components/Misc/Carousel';
 import { QRCodeCanvas } from 'qrcode.react';
 
 const Dashboard = () => {
-    const { isConnected } = useWeb3AuthConnect();
     const { did, id } = useAgent();
-    const loggedIn = isConnected && did;
     const [qrOpen, setQROpen] = useState(false);
     
-    if (!loggedIn) return null;
-
     const did_display = did.split(":")[3];
 
     return (
@@ -66,16 +60,22 @@ const Dashboard = () => {
                         <QRCodeCanvas value={did} size={240} />
                     </DialogContent>
                 </Dialog>
-                <Button onClick={() => checkDidOnChain(did)}>Check did on Chain</Button>
+                
             </Container>
             <Divider sx={{mt: 5}}/>
-            <Container maxWidth='xl' sx={{ mt: 5 }}>
+            <Container maxWidth='xl' sx={{ mt: 5, mb: 4 }}>
                 <Typography variant='h5' sx={{textAlign: 'start', mb: 3}}>
                     Existing Identities
                 </Typography>
                 {id && <CardCarousel identities={id} />}
             </Container>
-            
+            <Divider />
+            <Container maxWidth='xl' sx={{ mt: 5, mb: 4 }}>
+                <Typography variant='h5' sx={{textAlign: 'start', mb: 3}}>
+                    Ethereum Blockchain
+                </Typography>
+                <Button onClick={() => checkDidOnChain(did)}>Check did on Chain</Button>
+            </Container>
         </Box>
     );
 };

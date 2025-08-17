@@ -298,3 +298,58 @@ export const postRequest = async ({did, agent, holderDid, contextId, purpose}) =
     }
     return result;
 }
+
+
+export const getRequests = async () => {
+    const token = localStorage.getItem('accessToken');
+
+    try {
+        const response = await fetch(`http://localhost:8000/api/me/requests/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || 'Error obtaining contexts');
+        }
+        return data;
+    } catch (err) {
+        console.error('Failed to fetch contexts', err);
+        throw err;
+    }
+};
+
+
+export const updateRequest = async ({ request_id, updates }) => {
+    const token = localStorage.getItem('accessToken');
+    
+    const encReq = encodeURIComponent(request_id)
+    try {
+        const response = await fetch(`http://localhost:8000/api/requests/update/${encReq}/`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(updates)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || 'Request could not be updated');
+        }
+        return data;
+
+    } catch (err) {
+        console.error('Failed to fetch contexts', err);
+        throw err;
+    }
+}

@@ -7,7 +7,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import { postRequest } from "../helper";
 import { useAgent } from '../../services/AgentContext';
 
-export default function RequestForm() {
+export default function RequestForm({ onNewRequest }) {
     const [value, setValue] = useState('');
     const [contexts, setContexts] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -46,6 +46,7 @@ export default function RequestForm() {
             const holderDid = value;
             setReqStatus('Submitting request...');
             const reqResponse = await postRequest({did, agent, holderDid, contextId, purpose});
+            onNewRequest();
             console.log(reqResponse);
         } catch (err) {
             setReqStatus('Failed to send request.', err);

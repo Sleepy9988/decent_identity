@@ -1,17 +1,10 @@
 import * as React from 'react';
-import Box from '@mui/material/Box';
-import Drawer from '@mui/material/Drawer';
-import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
-import Divider from '@mui/material/Divider';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
+
+import { Box, Typography, Drawer, Toolbar, List, Divider, ListItem, ListItemButton, ListItemIcon, ListItemText} from "@mui/material";
+
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PermIdentityIcon from '@mui/icons-material/PermIdentity';
 import InboxIcon from '@mui/icons-material/Inbox';
-import Typography from '@mui/material/Typography';
 
 import { NavLink } from 'react-router-dom';
 import { useWeb3AuthConnect } from "@web3auth/modal/react";
