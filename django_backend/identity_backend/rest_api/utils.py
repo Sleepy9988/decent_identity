@@ -1,5 +1,8 @@
 import requests 
 import logging
+from hashlib import sha256
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 logger = logging.getLogger(__name__)
 
@@ -19,4 +22,20 @@ def verify_with_veramo(endpoint, json_data):
         logger.error(f"Request error: {e}")
         raise
     
+
+def notify_did(did, payload):
+
+    channel_layer = get_channel_layer()
     
+    if channel_layer is None:
+        return
+    
+    group_name = sha256(did.encode('utf-8')).hexdigest()
+
+    async_to_sync(channel_layer.group_send)(
+        group_name,
+        {
+            "type": "notify",          
+            "message": payload,         
+        }
+    )

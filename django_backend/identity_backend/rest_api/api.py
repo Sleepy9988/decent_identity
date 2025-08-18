@@ -5,20 +5,22 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny
-from .models import Profile, Identity
+from .models import Profile, Identity, Request
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.db.models import Q
 
-from .utils import verify_with_veramo
-from .serializers import IdentitySerializer, MassDeleteSerializer
+from .utils import verify_with_veramo, notify_did
+from .serializers import IdentitySerializer, MassDeleteSerializer, RequestListSerializer, RequestUpdateSerializer
 from django.db import transaction
 
 # Import supporting Python libraries
 import secrets
 import logging
 import requests
+import json
 
 # Logging setup for easier debugging
 logger = logging.getLogger(__name__)
@@ -32,6 +34,12 @@ class LoginChallengeView(APIView):
         request.session['login_challenge'] = challenge
 
         # Send challenge to the client
+        return Response({'challenge': challenge}, status=status.HTTP_200_OK)
+    
+class RequestChallengeView(APIView): 
+    def get(self, request, *args, **kwargs): 
+        challenge = secrets.token_hex(16) 
+        request.session['request_challenge'] = challenge 
         return Response({'challenge': challenge}, status=status.HTTP_200_OK)
 
 #### potentially remove
@@ -253,12 +261,172 @@ class GetContexts(APIView):
         except Profile.DoesNotExist:
             return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
         
-        contexts = (
-            Identity.objects
-            .filter(user=profile, is_active=True)
-            .values_list('context', flat=True)
+        contexts = ( 
+            Identity.objects 
+            .filter(user=profile, is_active=True) 
+            .values('id', 'context') 
         )
 
         return Response({'contexts': list(contexts)}, status=status.HTTP_200_OK)
 
+
+# API POST endpoint to verify a Verifiable Presentation and register a new user 
+@method_decorator(csrf_exempt, name='dispatch') 
+class CreateRequestView(APIView): 
+    authentication_classes = [JWTAuthentication] 
+    permission_classes = [IsAuthenticated] 
     
+    def post(self, request, *args, **kwargs): 
+        # Extract the verifiable presentation from the request body 
+        presentation = request.data.get('presentation') 
+        # Get the prviously issued challenge from the session 
+        session_challenge = request.session.get('request_challenge') 
+        
+        if not presentation: 
+            return Response({'error': 'Presentation is missing'}, status=status.HTTP_400_BAD_REQUEST) 
+        if not session_challenge: return Response({'error': 'Missing login challenge'}, status=status.HTTP_400_BAD_REQUEST) 
+        # Verify challenge 
+        vp_challenge = presentation.get('challenge') 
+        
+        if not vp_challenge or vp_challenge != session_challenge: 
+            return Response({'error': 'Challenge mismatch'}, status=status.HTTP_400_BAD_REQUEST) 
+        
+        try: 
+            logger.debug(f'Sending to Veramo: presentation={presentation}, challenge={session_challenge}') 
+            
+            payload = { 
+                'presentation': presentation, 
+                'challenge': session_challenge, 
+                'domain': 11155111 # Sepolia 
+            }
+        
+            # Send the presentation and challenge to the Veramo backend agent for verification 
+            response = verify_with_veramo('verify-presentation', payload) 
+            logger.debug(f'Response text from Veramo: {response}') 
+            
+            # Parse the response from Veramo 
+            verification_data = response 
+            logger.debug(f'Veramo response: {verification_data}') 
+            
+            # Handle connection errors 
+        except requests.exceptions.RequestException as e: 
+            logger.error(f'Error calling Veramo service: {e}') 
+            return Response({'error': 'Could not connect to Veramo service'}, status=status.HTTP_503_SERVICE_UNAVAILABLE) 
+        
+        # Extract the verification result 
+        is_verified = verification_data.get('verified') 
+        
+        # If verification failed or DID missing, deny the request 
+        if not is_verified: 
+            logger.warning("Presentation failed or DID is missing.") 
+            return Response({'error': 'Presentation verification failed'}, status=status.HTTP_403_FORBIDDEN) 
+        
+        vc_list = presentation.get('verifiableCredential') or [] 
+        if not vc_list: 
+            return Response({'error': 'No credential in presentation'}, status=status.HTTP_400_BAD_REQUEST) 
+        
+        vc_str = vc_list[0] 
+        vc = json.loads(vc_str) 
+
+        types = vc.get('type', []) 
+
+        if 'RequestCredential' not in types: 
+            return Response({'error': 'Unexpected VC type'}, status=status.HTTP_400_BAD_REQUEST) 
+        
+        subject = vc.get('credentialSubject') or {} 
+        
+        requestor_did = subject.get('requestorDid') 
+        holder_did = subject.get('holderDid') 
+        context_id = subject.get('contextId') 
+        purpose = subject.get('purpose') 
+        
+        if not all([requestor_did, holder_did, context_id]): 
+            return Response({'error': 'Incomplete information in the credentialSubject'}, status=status.HTTP_400_BAD_REQUEST) 
+        
+        request.session.pop('request_challenge', None) 
+        
+        try: 
+            requestor_profile = Profile.objects.get(did=requestor_did) 
+        except Profile.DoesNotExist: 
+            return Response({'error': 'Requestor profile does not exist'}, status=status.HTTP_404_NOT_FOUND) 
+        
+        try: 
+            holder_profile = Profile.objects.get(did=holder_did) 
+        except Profile.DoesNotExist: 
+            return Response({'error': 'Identity holder profile does not exist'}, status=status.HTTP_404_NOT_FOUND) 
+        
+        try: 
+            identity = Identity.objects.get(id=context_id, user=holder_profile) 
+        except Identity.DoesNotExist: return Response({'error': 'Requested context not found for holder'}, status=status.HTTP_404_NOT_FOUND) 
+        
+        req = Request.objects.create( 
+            requestor = requestor_profile, 
+            holder=holder_profile, 
+            context=identity, 
+            purpose=purpose, 
+            status=Request.Status.PENDING, 
+            challenge=vp_challenge, 
+            presentation=vc ) 
+        
+        notify_did(holder_did, { 
+            "event": "new request received", 
+            "request_id": str(req.id), 
+            "from": requestor_did, 
+            "context": identity, 
+            "created_at": req.created_at.isoformat(), 
+        }) 
+        
+        return Response({'success': True, 'request_id': str(req.id)}, status=status.HTTP_201_CREATED) 
+    
+    
+class GetRequests(APIView): 
+    authentication_classes = [JWTAuthentication] 
+    permission_classes = [IsAuthenticated] 
+    
+    def get(self, request, *args, **kwargs): 
+        try: 
+            profile = request.user.profile 
+        except Profile.DoesNotExist: 
+            return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND) 
+        
+        status_code = request.query_params.get('status') 
+        qs = Request.objects.select_related('requestor', 'holder', 'context') 
+        qs = qs.filter(Q(requestor=profile) | Q(holder=profile)) 
+        
+        if status_code: 
+            qs = qs.filter(status=status_code) 
+        total = qs.count() 
+        page = qs.order_by('-created_at') # potentially limit the number of returned objects here 
+        data = RequestListSerializer(page, many=True).data   
+        return Response( { 'count': total, 'results': data }, status=status.HTTP_200_OK ) 
+            
+    
+class UpdateRequestView(APIView): 
+    authentication_classes = [JWTAuthentication] 
+    permission_classes = [IsAuthenticated] 
+    
+    def patch(self, request, request_id): 
+        try: 
+            req = Request.objects.get(id=request_id) 
+        except Request.DoesNotExist: 
+            return Response({'error': 'Request does not exist'}, status=status.HTTP_404_NOT_FOUND) 
+        
+        if req.holder != request.user.profile: 
+            return Response({'error': 'Not allowed'}, status=status.HTTP_403_FORBIDDEN) 
+        
+        serializer = RequestUpdateSerializer(req, data=request.data, partial=True) 
+        
+        if serializer.is_valid(): 
+            instance = serializer.save() 
+            
+            notify_did(instance.requestor.did, { 
+                "event": "new request received", 
+                "request_id": str(instance.id), 
+                "status": instance.get_status_display(), 
+                "expires_at": instance.expires_at.isoformat() 
+                if instance.expires_at else None, 
+                "reason": instance.reason, 
+                }
+            ) 
+            return Response(RequestListSerializer(instance).data, status=status.HTTP_200_OK) 
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

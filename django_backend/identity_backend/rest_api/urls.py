@@ -6,7 +6,11 @@ from .api import (
     CreateCredentialView,
     GetMyIdentitiesView,
     IdentityDeleteView,
-    GetContexts
+    GetContexts,
+    RequestChallengeView,
+    CreateRequestView,
+    GetRequests,
+    UpdateRequestView
 )
 
 urlpatterns = [
@@ -16,5 +20,9 @@ urlpatterns = [
       path('credential/verify', CreateCredentialView.as_view(), name='verify_credential'),
       path('me/identities/', GetMyIdentitiesView.as_view(), name='get_identities'),
       path('identity/delete/', IdentityDeleteView.as_view(), name='delete_identities'),
-      path('users/<str:did>/contexts/', GetContexts.as_view(), name='user_contexts')
+      path('users/<str:did>/contexts/', GetContexts.as_view(), name='user_contexts'),
+      path('requests/challenge', RequestChallengeView.as_view(), name='get_request_challenge'),
+      path('request/create', CreateRequestView.as_view(), name='create_request'),
+      path('me/requests/', GetRequests.as_view(), name='get_requests'),
+      path('requests/update/<uuid:id>/', UpdateRequestView.as_view(), name='update_requests'),
 ]

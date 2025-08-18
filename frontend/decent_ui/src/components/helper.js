@@ -316,11 +316,11 @@ export const getRequests = async () => {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.detail || 'Error obtaining contexts');
+            throw new Error(data.detail || 'Error obtaining requests');
         }
         return data;
     } catch (err) {
-        console.error('Failed to fetch contexts', err);
+        console.error('Failed to fetch requests', err);
         throw err;
     }
 };

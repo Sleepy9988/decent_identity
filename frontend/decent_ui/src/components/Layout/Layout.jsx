@@ -16,9 +16,9 @@ const Layout = ({ children }) => {
     const isLoginPage = location.pathname === '/';
 
     const { isConnected } = useWeb3AuthConnect();
-    const { did } = useAgent();
+    const { did, agent } = useAgent();
 
-    const loggedIn = isConnected && did;
+    const loggedIn = isConnected && did && agent;
 
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh' }}>

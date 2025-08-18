@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy as _ 
+from django.core.exceptions import ValidationError
 
 from .cryptographic_utils import encrypt, decrypt
 
@@ -21,7 +23,7 @@ class Identity(models.Model):
     user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='identities')
     context = models.CharField(max_length=255, blank=False, null=False)
     description = models.TextField()
-    avatar = models.BinaryField(blank=True, null=True)
+    avatar = models.ImageField(blank=True, null=True, upload_to='images/')
     issued = models.DateTimeField(auto_now_add=True)
     enc_data = models.BinaryField(blank=False, null=False)
     salt = models.BinaryField(blank=False, null=False)
@@ -53,7 +55,48 @@ class Identity(models.Model):
         super().save(*args, **kwargs)
     
 
-
+class Request(models.Model): 
+    class Status(models.TextChoices): 
+        PENDING = "PD", _("Pending") 
+        APPROVED = "AP", _("Approved") 
+        DECLINED = "DC", _("Declined") 
+        
+    id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False) 
+    requestor = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='requests_made') 
+    holder = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='requests_received') 
+    context = models.ForeignKey(Identity, on_delete=models.CASCADE, related_name='requests') 
+    purpose = models.TextField() 
+    status = models.CharField(max_length=2, choices=Status, default=Status.PENDING, db_index=True) 
+    reason = models.TextField(blank=True, null=True) 
+    expires_at = models.DateTimeField(blank=True, null=True, db_index=True) 
+    challenge = models.CharField(max_length=255, blank=True, null=True) 
+    presentation = models.JSONField(blank=True, null=True) 
+    approved_by = models.ForeignKey(Profile, null=True, blank=True, on_delete=models.SET_NULL, related_name='requests_approved') 
+    approved_at = models.DateTimeField(null=True, blank=True) 
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True) 
+    updated_at = models.DateTimeField(auto_now=True) 
     
+    class Meta: 
+        indexes = [ 
+            models.Index(fields=['holder', 'status']), 
+            models.Index(fields=['requestor', 'created_at']) 
+        ] 
+        
+        constraints = [ 
+            models.UniqueConstraint( 
+                fields=['requestor', 'context', 'status'], 
+                condition=models.Q(status='PD'), 
+                name='unique_pending_request_per_requestor_context' 
+            ) 
+        ] 
+
+        ordering = ['-created_at'] 
+    
+    def clean(self): 
+        if self.context.user != self.holder: 
+            raise ValidationError("Context does not belong to the holder.") 
+        
+    def __str__(self): 
+        return f"{self.requestor.did} - {self.holder.did} [{self.context}] ({self.get_status_display()})" 
 
     

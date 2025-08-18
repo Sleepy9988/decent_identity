@@ -73,6 +73,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'rest_api',
     'rest_framework', 
     'rest_framework_simplejwt',
@@ -125,7 +126,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'identity_backend.wsgi.application'
-
+ASGI_APPLICATION = 'identity_backend.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -202,3 +203,6 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True
 }
 
+CHANNEL_LAYERS = {
+    'default': {'BACKEND': 'channels.layers.InMemoryChannelLayer'}
+}
