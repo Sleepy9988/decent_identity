@@ -91,11 +91,11 @@ class RequestUpdateSerializer(serializers.ModelSerializer):
             if 'expires_at' in validated: 
                 instance.expires_at = validated['expires_at'] 
                 instance.reason = None 
-            else: 
-                instance.status = Request.Status.DECLINED 
-                instance.reason = validated.get('reason') or instance.reason 
-                instance.expires_at = None 
-                instance.approved_at = None 
-                instance.save(update_fields=['status', 'approved_at', 'expires_at', 'reason']) 
-                
-            return instance
+        else: 
+            instance.status = Request.Status.DECLINED 
+            instance.reason = validated.get('reason') or instance.reason 
+            instance.expires_at = None 
+            instance.approved_at = None 
+            
+        instance.save(update_fields=['status', 'approved_at', 'expires_at', 'reason'])         
+        return instance

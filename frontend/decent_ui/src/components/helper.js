@@ -144,7 +144,7 @@ export const checkDIDProfile = async ({ agent, did }) => {
     });
 
     const result = await createResponse.json()
-
+    
     if (!createResponse.ok) {
         throw new Error(result.error || 'Failed to create profile.');
     }
@@ -153,7 +153,7 @@ export const checkDIDProfile = async ({ agent, did }) => {
     localStorage.setItem('accessToken', result.access);
     localStorage.setItem('refreshToken', result.refresh); 
 
-    return {accessToken: result.access, did};
+    return {accessToken: result.access, did, creation: result.profile_created, access: result.profile_last_access};
 }
 
 
@@ -350,6 +350,32 @@ export const updateRequest = async ({ request_id, updates }) => {
 
     } catch (err) {
         console.error('Failed to fetch contexts', err);
+        throw err;
+    }
+}
+
+export const deleteRequest = async({ request_id }) => {
+    const token = localStorage.getItem('accessToken');
+    const encReq = encodeURIComponent(request_id)
+    try {
+        const response = await fetch(`http://localhost:8000/api/me/request/delete/${encReq}/`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        });
+
+        if (response.status === 204) {
+            return { success: true };
+        }
+
+        if (!response.ok) {
+            throw new Error('Request could not be deleted');
+        }
+    } catch (err) {
+        console.error('Failed to delete request', err);
         throw err;
     }
 }

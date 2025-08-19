@@ -10,7 +10,8 @@ from .api import (
     RequestChallengeView,
     CreateRequestView,
     GetRequests,
-    UpdateRequestView
+    UpdateRequestView,
+    DeleteRequestView
 )
 
 urlpatterns = [
@@ -24,5 +25,6 @@ urlpatterns = [
       path('requests/challenge', RequestChallengeView.as_view(), name='get_request_challenge'),
       path('request/create', CreateRequestView.as_view(), name='create_request'),
       path('me/requests/', GetRequests.as_view(), name='get_requests'),
-      path('requests/update/<uuid:id>/', UpdateRequestView.as_view(), name='update_requests'),
+      path('requests/update/<uuid:request_id>/', UpdateRequestView.as_view(), name='update_requests'),
+      path('me/request/delete/<uuid:request_id>/', DeleteRequestView.as_view(), name='delete_request'),
 ]

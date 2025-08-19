@@ -8,7 +8,7 @@ import LoginIcon from '@mui/icons-material/Login';
 import { useNavigate } from "react-router-dom";
 
 const ConnectWeb3AuthButton = () => {
-    const { setAgent, setDid, setAccessToken, setIdentity, setSignature } = useAgent();
+    const { setAgent, setDid, setIdentity, setSignature, setMeta } = useAgent();
     const { connect, isConnected  } = useWeb3AuthConnect();
     const navigate = useNavigate();
 
@@ -23,13 +23,18 @@ const ConnectWeb3AuthButton = () => {
             onClick={async () => {
                 const web3authProvider = await connect();
                 if (web3authProvider) {
-                    const result  = await handleWeb3AuthLogin(web3authProvider, setAgent, setDid, setAccessToken, setSignature);
+                    const result  = await handleWeb3AuthLogin(web3authProvider, setAgent);
                     if (result) {
-                        const { authenticatedDid, signature } = result;
+                        const { authenticatedDid, signature, meta_data } = result;
+                        
                         setDid(authenticatedDid);
                         setSignature(signature);
+                        
                         const ids = await getIdentities(signature);
                         setIdentity(ids.identities);
+                        
+                        setMeta(meta_data);
+                        
                         navigate('/dashboard');
                     }
                 }

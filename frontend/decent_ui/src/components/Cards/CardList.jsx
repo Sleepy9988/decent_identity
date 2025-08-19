@@ -4,15 +4,37 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ShareIcon from '@mui/icons-material/Share';
 import DownloadIcon from '@mui/icons-material/Download';
 import IdentityCard from "./IdentityCard";
-
+import AlertDialog from "../Misc/AlertDialog";
 import { useAgent } from '../../services/AgentContext';
 import { deleteIdentities } from "../helper";
 import { handleDownload } from "../../utils/download";
 
 export default function CardList({ identities }) {
     const { setIdentity} = useAgent();
-
+    const [dialogOpen, setDialogOpen] = useState(false);
     const [selected, setSelected] = useState(() => new Set());
+
+    const handleMassDelete = useCallback(async () => {
+        if (selected.size === 0) return;
+        setDialogOpen(true);
+    }, [selected]);
+
+    const handleDialogConfirm = useCallback(async () => {
+        setDialogOpen(false);
+        const idsDelete = [...selected];
+
+        try {
+            await deleteIdentities(idsDelete);
+            setIdentity(prev => prev.filter(i => !selected.has(i.id)));
+            setSelected(new Set());
+        } catch (err) {
+            console.error("Bulk deletion failed", err);
+        }
+    }, [selected, setIdentity]);
+
+    const handleDialogCancel = useCallback(() => {
+        setDialogOpen(false)
+    }, []);
 
     useEffect(() => {
         setSelected(new Set());
@@ -50,6 +72,7 @@ export default function CardList({ identities }) {
         });
     }, [setIdentity]);
 
+    /*
     const handleMassDelete = useCallback(async () => {
         if (selected.size === 0) return;
         const ok = window.confirm(`Permanentely delete ${selected.size} selected identities?`);
@@ -65,6 +88,7 @@ export default function CardList({ identities }) {
             console.error("Bulk deletion failed", err);
         }
     }, [selected, setIdentity]);
+    */
 
     if (!Array.isArray(identities) || identities.length === 0) {
         return <Typography sx={{ mt: 3 }}> You don't have any identities yet.</Typography>;
@@ -91,6 +115,13 @@ export default function CardList({ identities }) {
                         <Button startIcon={<DeleteIcon />} onClick={handleMassDelete}>Delete</Button>
                     </ButtonGroup>
                 </Box>
+                <AlertDialog
+                    open={dialogOpen}
+                    title="Confirm Mass Deletion"
+                    text={`Do you want to permanently delete ${selected.size} selected identities?`}
+                    onAgree={handleDialogConfirm}
+                    onClose={handleDialogCancel}
+                />
             </Box>
             <Box sx={{ mt: 5, mb: 5, maxWidth: '1000px', display: 'flex', flexDirection: 'column', gap: 3}}>
             {identities.map((identity) => {

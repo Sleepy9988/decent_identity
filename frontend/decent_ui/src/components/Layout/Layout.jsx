@@ -18,7 +18,7 @@ const Layout = ({ children }) => {
     const { isConnected } = useWeb3AuthConnect();
     const { did, agent } = useAgent();
 
-    const loggedIn = isConnected && did && agent;
+    const loggedIn = isConnected && did;
 
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh' }}>

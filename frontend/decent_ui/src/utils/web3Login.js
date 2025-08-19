@@ -22,10 +22,7 @@ export async function handleWeb3AuthLogin(web3authProvider, setAgent) {
         const address = await signer.getAddress();
         const balance = await ethersProvider.getBalance(address);
         const transaction_count = await ethersProvider.getTransactionCount(address);
-        console.log(balance);
-        console.log("transaction" + transaction_count)
-        console.log(network.name, network.chainId);
-
+    
         const agentWrapper = new VeramoAgentWrapper(ethersProvider, signer, publicKeyHex);
         await agentWrapper.init();
 
@@ -37,10 +34,17 @@ export async function handleWeb3AuthLogin(web3authProvider, setAgent) {
         localStorage.setItem('signature', signature);
 
         const result = await checkDIDProfile({ agent, did });
+        const meta_data = {
+            balance: balance.toString(),
+            transactions: Number(transaction_count), 
+            network: network, 
+            creation: result.creation, 
+            access: result.access
+        }
 
         const authenticatedDid = result.did;
 
-        return { authenticatedDid, signature };
+        return { authenticatedDid, signature, meta_data };
     
     } catch (err) {
         console.error("Error in handleCreateDIDProfile:", err);

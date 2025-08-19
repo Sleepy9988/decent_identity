@@ -1,19 +1,25 @@
-
-export const logoutUser = async ({ setAgent, setDid, disconnect }) => {
+export const logoutUser = async ({ setAgent, setDid, setSignature, setMeta, disconnect }) => {
     setAgent(null);
     setDid(null);
+    setSignature(null);
+    setMeta(null);
 
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('did');
     localStorage.removeItem('signature');
+    localStorage.removeItem('meta');
 
     try {
-        await disconnect();
-        console.log('User logged out.');
+        if (typeof disconnect === 'function') {
+            await disconnect();
+            console.log('User logged out.');
+        } else {
+            console.warn('Web3Auth instance not available.');
+        }
     } catch (err) {
         console.warn('Web3Auth logout failed:', err);
     }
     
-    window.location.href = '/'
+    //window.location.href = '/'
 }

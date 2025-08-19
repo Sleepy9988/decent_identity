@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { Container, Box, Typography, Tabs, Tab, Divider } from '@mui/material';
 import RequestForm from '../components/Forms/RequestForm';
@@ -14,7 +14,7 @@ const Requests = () => {
     
     const { did } = useAgent();
 
-    const loadRequest = async () => {
+    const loadRequest = useCallback(async () => {
         try {
             setLoading(true);
             const res = await getRequests();
@@ -24,11 +24,11 @@ const Requests = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         loadRequest();
-    }, []);
+    }, [loadRequest]);
 
     const handleRequestCreation = async () => {
         loadRequest();
@@ -60,14 +60,14 @@ const Requests = () => {
                     <> 
                         {loading && <Typography sx={{ mt: 3 }}>Loading...</Typography>}
                         
-                        {!loading && <RequestCardList requests={received_reqs} canDecide={true}/>}
+                        {!loading && <RequestCardList requests={received_reqs} canDecide={true} onUpdate={loadRequest} />}
                     </>
                 )}
                 {value == "3" && (
                     <> 
                         {loading && <Typography sx={{ mt: 3 }}>Loading...</Typography>}
                         
-                        {!loading && <RequestCardList requests={created_reqs} canDecide={false}/>}
+                        {!loading && <RequestCardList requests={created_reqs} canDecide={false} onUpdate={loadRequest} />}
                     </>
                 )}
             </Container>

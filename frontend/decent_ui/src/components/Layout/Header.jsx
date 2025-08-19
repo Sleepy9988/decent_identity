@@ -10,7 +10,7 @@ import { useAgent } from '../../services/AgentContext';
 
 export default function Header({ loggedIn }) {
   const { notifications } = useAgent();
-
+  loggedIn = true;
   return (
     <AppBar position='fixed' sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: '#15222e', py:2 }}>
       <Toolbar >

@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
 from .utils import verify_with_veramo, notify_did
 from .serializers import IdentitySerializer, MassDeleteSerializer, RequestListSerializer, RequestUpdateSerializer
@@ -118,6 +119,8 @@ class UserAuthenticationView(APIView):
             user = profile.user
             logger.info(f'Existing user {user.username} authenticated successfully!')
             created = False
+
+            profile.save(update_fields=['latest_access'])
         
         except Profile.DoesNotExist:
             # Create a new Django user with DID as username
@@ -140,7 +143,10 @@ class UserAuthenticationView(APIView):
             'user_id': user.id, 
             'refresh': str(refresh),
             'access': str(refresh.access_token),
+            'profile_created': profile.creation_date,
+            'profile_last_access': profile.latest_access
         }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CreateCredentialView(APIView):
@@ -205,6 +211,7 @@ class CreateCredentialView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class GetMyIdentitiesView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -221,14 +228,13 @@ class GetMyIdentitiesView(APIView):
         serializer = IdentitySerializer(ids, many=True, context={'signature': signature})
         
         return Response({'identities': serializer.data}, status=status.HTTP_200_OK)
-        
+
+
 class IdentityDeleteView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        auth = request.META.get('HTTP_AUTHORIZATION')
-        logger.debug('Auth header -> %s', auth)
         serializer = MassDeleteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         ids = serializer.validated_data['ids']
@@ -389,16 +395,48 @@ class GetRequests(APIView):
         except Profile.DoesNotExist: 
             return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND) 
         
-        status_code = request.query_params.get('status') 
-        qs = Request.objects.select_related('requestor', 'holder', 'context') 
-        qs = qs.filter(Q(requestor=profile) | Q(holder=profile)) 
+        qs = (Request.objects
+                .select_related('requestor', 'holder', 'context') 
+                .filter(Q(requestor=profile) | Q(holder=profile))
+            )
         
+        status_code = request.query_params.get('status') 
         if status_code: 
             qs = qs.filter(status=status_code) 
+
         total = qs.count() 
-        page = qs.order_by('-created_at') # potentially limit the number of returned objects here 
+
+        limit = request.query_params.get('limit')
+        try:
+            limit = int(limit) if limit is not None else 200
+        except ValueError:
+            limit = 200
+
+        page = qs.order_by('-created_at')[:limit]  
         data = RequestListSerializer(page, many=True).data   
-        return Response( { 'count': total, 'results': data }, status=status.HTTP_200_OK ) 
+        return Response({ 'count': total, 'results': data }, status=status.HTTP_200_OK ) 
+    
+
+class DeleteRequestView(APIView):
+    authentication_classes = [JWTAuthentication] 
+    permission_classes = [IsAuthenticated] 
+
+    def delete(self, request, request_id):
+        try:
+            profile = request.user.profile
+        except: 
+            return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        instance = get_object_or_404(
+            Request,
+            id=request_id,
+            requestor=profile,
+            status=Request.Status.PENDING,
+        )
+
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+ 
             
     
 class UpdateRequestView(APIView): 
@@ -406,6 +444,7 @@ class UpdateRequestView(APIView):
     permission_classes = [IsAuthenticated] 
     
     def patch(self, request, request_id): 
+        logger.info(f"Update data: {request.data}")
         try: 
             req = Request.objects.get(id=request_id) 
         except Request.DoesNotExist: 

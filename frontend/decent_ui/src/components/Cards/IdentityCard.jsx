@@ -2,21 +2,25 @@ import React, { useState } from "react";
 import { Box, Fab, Card, Typography, CardContent, Divider, Tooltip, CardHeader } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import CloseIcon from '@mui/icons-material/Close';
 import { deleteIdentities } from '../helper';
 import { useLocation } from "react-router-dom";
+import AlertDialog from '../Misc/AlertDialog';
 
 export default function IdentityCard ({ identity, onDeleted }) {
     const { id, context, description, issued, decrypted_data } = identity;
     const [deleting, setDeleting] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
     const location = useLocation();
     const entries = decrypted_data ? Object.entries(decrypted_data) : [];
 
-    const handleDelete = async () => {
-        if (deleting) return;
-        const ok = window.confirm("Delete this identity permanently?");
-        if (!ok) return;
+    const handleDeleteClick = () => {
+        setOpenDialog(true);
+    }
 
+    const handleConfirmDelete = async () => {
+        setOpenDialog(false);
+        if (deleting) return;
+   
         try {
             setDeleting(true);
             await deleteIdentities([id]);
@@ -27,6 +31,10 @@ export default function IdentityCard ({ identity, onDeleted }) {
             setDeleting(false);
         }
     };
+
+    const handleCancelDelete = () => {
+        setOpenDialog(false);
+    }
 
     return (
         <Card sx={{ p: 2, backgroundColor: '#2d4963', borderRadius: 3, color: '#fff', minHeight: 300 }}>
@@ -45,7 +53,7 @@ export default function IdentityCard ({ identity, onDeleted }) {
                             </Tooltip>
                             <Tooltip title="Delete">
                                 <span>
-                                    <Fab aria-label="delete" size="small" onClick={handleDelete} disabled={deleting}>
+                                    <Fab aria-label="delete" size="small" onClick={handleDeleteClick} disabled={deleting}>
                                         <DeleteIcon color='error' />
                                     </Fab>
                                 </span>
@@ -81,6 +89,13 @@ export default function IdentityCard ({ identity, onDeleted }) {
                     </Typography>
                 </Box>
             </CardContent>
+            <AlertDialog
+                open={openDialog}
+                title="Confirm Deletion"
+                text="Are you sure you want to delete this identity permanently? This action cannot be undone."
+                onAgree={handleConfirmDelete}
+                onClose={handleCancelDelete}
+            />
         </Card>
     );
 }
