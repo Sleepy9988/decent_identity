@@ -1,23 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Box, Fab, Card, Typography, CardContent, Divider, Tooltip, CardHeader } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import { deleteIdentities } from '../helper';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { deleteIdentities, updateIdentity } from '../helper';
 import { useLocation } from "react-router-dom";
 import AlertDialog from '../Misc/AlertDialog';
 
-export default function IdentityCard ({ identity, onDeleted }) {
-    const { id, context, description, issued, decrypted_data } = identity;
+export default function IdentityCard ({ identity, onDeleted, onUpdated }) {
+    const { id, context, description, issued, decrypted_data, is_active } = identity;
     const [deleting, setDeleting] = useState(false);
     const [openDialog, setOpenDialog] = useState(false);
+    const [updating, setUpdating] = useState(false);
     const location = useLocation();
     const entries = decrypted_data ? Object.entries(decrypted_data) : [];
 
-    const handleDeleteClick = () => {
-        setOpenDialog(true);
-    }
+    const handleToggleVisibility = useCallback(async () => {
+        if (updating) return;
+        try {
+            setUpdating(true);
+            const res = await updateIdentity(id, !is_active);
+            if (onUpdated) onUpdated(id, res.is_active);
+        } catch (err) {
+            console.error('Visibility update failed', err);
+        } finally {
+            setUpdating(false);
+        }
+    }, [id, is_active, updating, onUpdated]);
 
-    const handleConfirmDelete = async () => {
+    const handleDeleteClick = useCallback(async () => {
+        setOpenDialog(true);
+    },[]);
+
+    const handleConfirmDelete = useCallback(async () => {
         setOpenDialog(false);
         if (deleting) return;
    
@@ -30,11 +45,11 @@ export default function IdentityCard ({ identity, onDeleted }) {
         } finally {
             setDeleting(false);
         }
-    };
+    }, [id, deleting, onDeleted]);
 
-    const handleCancelDelete = () => {
+    const handleCancelDelete = useCallback(() => {
         setOpenDialog(false);
-    }
+    }, []);
 
     return (
         <Card sx={{ p: 2, backgroundColor: '#2d4963', borderRadius: 3, color: '#fff', minHeight: 300 }}>
@@ -44,13 +59,24 @@ export default function IdentityCard ({ identity, onDeleted }) {
                 action={
                     location.pathname == '/identities' &&
                         <Box sx={{ display: 'flex', gap: 1 }}>
-                            <Tooltip title="Edit">
-                                <span>
-                                    <Fab aria-label="edit" size="small" sx={{ mr: 3}} disabled={deleting} >
-                                        <EditIcon color='primary' />
-                                    </Fab>
-                                </span>
-                            </Tooltip>
+                            {is_active ? (
+                                <Tooltip title="Hide">
+                                    <span>
+                                        <Fab aria-label="visible" size="small" sx={{ mr: 3}} disabled={deleting || updating} onClick={handleToggleVisibility}>
+                                            <VisibilityIcon color='primary' />
+                                        </Fab>
+                                    </span>
+                                </Tooltip>
+                            ) : (
+                                <Tooltip title="Show">
+                                    <span>
+                                        <Fab aria-label="hidden" size="small" sx={{ mr: 3}} disabled={deleting || updating} onClick={handleToggleVisibility}>
+                                            <VisibilityOffIcon color='primary' />
+                                        </Fab>
+                                    </span>
+                                </Tooltip>
+                            )
+                            }
                             <Tooltip title="Delete">
                                 <span>
                                     <Fab aria-label="delete" size="small" onClick={handleDeleteClick} disabled={deleting}>

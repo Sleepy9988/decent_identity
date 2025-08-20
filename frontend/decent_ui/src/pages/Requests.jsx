@@ -55,7 +55,7 @@ const Requests = () => {
                     <Tab label='Received Requests' sx={{fontSize: '1rem', mr: 5}} value="2" />
                     <Tab label='Created Requests' sx={{fontSize: '1rem'}} value="3" />
                 </Tabs>
-                {value === "1" && <RequestForm onNewRequest={handleRequestCreation} />}
+                {value === "1" && <RequestForm created_reqs={created_reqs} onNewRequest={handleRequestCreation} />}
                 {value == "2" && (
                     <> 
                         {loading && <Typography sx={{ mt: 3 }}>Loading...</Typography>}

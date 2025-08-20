@@ -12,9 +12,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 from .utils import verify_with_veramo, notify_did
-from .serializers import IdentitySerializer, MassDeleteSerializer, RequestListSerializer, RequestUpdateSerializer
+from .serializers import IdentitySerializer, MassDeleteSerializer, RequestListSerializer, RequestUpdateSerializer, IdentityActiveSerializer
 from django.db import transaction
 
 # Import supporting Python libraries
@@ -32,7 +34,11 @@ class LoginChallengeView(APIView):
         challenge = secrets.token_hex(16)
 
         # Store the challenge in the session
-        request.session['login_challenge'] = challenge
+        request.session['login_challenge'] = {
+            'value': challenge,
+            'issued': timezone.now().timestamp(), 
+        }
+        request.session.modified = True
 
         # Send challenge to the client
         return Response({'challenge': challenge}, status=status.HTTP_200_OK)
@@ -40,7 +46,11 @@ class LoginChallengeView(APIView):
 class RequestChallengeView(APIView): 
     def get(self, request, *args, **kwargs): 
         challenge = secrets.token_hex(16) 
-        request.session['request_challenge'] = challenge 
+        #request.session['request_challenge'] = challenge 
+        request.session['request_challenge'] = {
+            'value': challenge,
+            'issued': timezone.now().timestamp(),
+        }
         return Response({'challenge': challenge}, status=status.HTTP_200_OK)
 
 #### potentially remove
@@ -59,7 +69,6 @@ class UserAuthenticationView(APIView):
     def post(self, request, *args, **kwargs):
         # Extract the verifiable presentation from the request body
         presentation = request.data.get('presentation')
-
         if not presentation:
             return Response({'error': 'Presentation is missing'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -69,20 +78,29 @@ class UserAuthenticationView(APIView):
         if not session_challenge:
             return Response({'error': 'Missing login challenge'}, status=status.HTTP_400_BAD_REQUEST)
         
+        issued = session_challenge.get('issued')
+        value = session_challenge.get('value')
+        
+        age = timezone.now().timestamp() - issued
+        if age > 300:
+            del request.session['login_challenge']
+            raise ValidationError('Challenge expired')
+        
         # Verify challenge 
         vp_challenge = presentation.get('challenge')
-        if not vp_challenge or vp_challenge != session_challenge:
+        #if not vp_challenge or vp_challenge != session_challenge:
+        if not vp_challenge or vp_challenge != value:
             return Response({'error': 'Challenge mismatch'}, status=status.HTTP_400_BAD_REQUEST)
         
         try: 
             logger.debug(f'Sending to Veramo: presentation={presentation}, challenge={session_challenge}')
-            json = {
+            payload = {
                 'presentation': presentation,
                 'challenge': session_challenge,
                 'domain': 11155111 # Sepolia 
             }
             # Send the presentation and challenge to the Veramo backend agent for verification
-            response = verify_with_veramo('verify-presentation', json)
+            response = verify_with_veramo('verify-presentation', payload)
 
             logger.debug(f'Response text from Veramo: {response}')
             # Parse the response from Veramo
@@ -103,6 +121,7 @@ class UserAuthenticationView(APIView):
 
         # If verification failed or DID missing, deny the request
         if not is_verified or not verified_did:
+            del request.session['login_challenge']
             logger.warning("Presentation failed or DID is missing.")
             return Response({'error': 'Presentation verification failed'}, 
                             status=status.HTTP_403_FORBIDDEN)
@@ -117,10 +136,9 @@ class UserAuthenticationView(APIView):
             # Check if the user with this DID already exists
             profile = Profile.objects.get(did=verified_did)
             user = profile.user
+            profile.save(update_fields=['latest_access'])
             logger.info(f'Existing user {user.username} authenticated successfully!')
             created = False
-
-            profile.save(update_fields=['latest_access'])
         
         except Profile.DoesNotExist:
             # Create a new Django user with DID as username
@@ -228,6 +246,26 @@ class GetMyIdentitiesView(APIView):
         serializer = IdentitySerializer(ids, many=True, context={'signature': signature})
         
         return Response({'identities': serializer.data}, status=status.HTTP_200_OK)
+    
+
+@method_decorator(csrf_exempt, name='dispatch')
+class UpdateIdentityActiveView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, identity_id):
+        identity = get_object_or_404(Identity, id=identity_id, user=request.user.profile)
+
+        serializer = IdentityActiveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        identity.is_active = serializer.validated_data['is_active']
+        identity.save(update_fields=['is_active'])
+
+        return Response(
+            IdentitySerializer(identity).data,
+            status=status.HTTP_200_OK
+        )
 
 
 class IdentityDeleteView(APIView):
@@ -287,14 +325,25 @@ class CreateRequestView(APIView):
         presentation = request.data.get('presentation') 
         # Get the prviously issued challenge from the session 
         session_challenge = request.session.get('request_challenge') 
+
+        if not session_challenge: 
+            return Response({'error': 'Missing login challenge'}, status=status.HTTP_400_BAD_REQUEST)
+
+        issued = session_challenge.get('issued')
+        value = session_challenge.get('value')
+        
+        age = timezone.now().timestamp() - issued
+        if age > 300:
+            del request.session['request_challenge']
+            raise ValidationError('Challenge expired')
         
         if not presentation: 
             return Response({'error': 'Presentation is missing'}, status=status.HTTP_400_BAD_REQUEST) 
-        if not session_challenge: return Response({'error': 'Missing login challenge'}, status=status.HTTP_400_BAD_REQUEST) 
+         
         # Verify challenge 
         vp_challenge = presentation.get('challenge') 
         
-        if not vp_challenge or vp_challenge != session_challenge: 
+        if not vp_challenge or vp_challenge != value: 
             return Response({'error': 'Challenge mismatch'}, status=status.HTTP_400_BAD_REQUEST) 
         
         try: 
@@ -324,6 +373,7 @@ class CreateRequestView(APIView):
         
         # If verification failed or DID missing, deny the request 
         if not is_verified: 
+            del request.session['request_challenge']
             logger.warning("Presentation failed or DID is missing.") 
             return Response({'error': 'Presentation verification failed'}, status=status.HTTP_403_FORBIDDEN) 
         
@@ -349,7 +399,7 @@ class CreateRequestView(APIView):
         if not all([requestor_did, holder_did, context_id]): 
             return Response({'error': 'Incomplete information in the credentialSubject'}, status=status.HTTP_400_BAD_REQUEST) 
         
-        request.session.pop('request_challenge', None) 
+        del request.session['request_challenge']
         
         try: 
             requestor_profile = Profile.objects.get(did=requestor_did) 

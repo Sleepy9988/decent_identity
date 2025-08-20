@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button} from "@mui/material";
 import BadgeIcon from '@mui/icons-material/Badge';
 
-export default function FormDialog({ onSubmitRequest }) {
+export default function FormDialog({ requested_already, onSubmitRequest }) {
     const [open, setOpen] = useState(false);
 
     const handleClickOpen = () => {
@@ -25,7 +25,11 @@ export default function FormDialog({ onSubmitRequest }) {
 
     return (
         <React.Fragment>
-            <Button aria-label="request" variant="outlined" endIcon={<BadgeIcon />} onClick={handleClickOpen}> Request</Button>
+            {requested_already ? (
+                <Button aria-label="request" variant="outlined" disabled={requested_already} endIcon={<BadgeIcon />} onClick={handleClickOpen}>Pending</Button>
+            ) : (
+                <Button aria-label="request" variant="outlined" disabled={requested_already} endIcon={<BadgeIcon />} onClick={handleClickOpen}>Request</Button>
+            )}
             <Dialog open={open} onClose={handleClose}>
                 <DialogTitle>Request Access</DialogTitle>
                 <DialogContent>

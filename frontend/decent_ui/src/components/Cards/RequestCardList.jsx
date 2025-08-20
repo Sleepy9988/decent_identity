@@ -1,14 +1,21 @@
 import React, { useCallback, useState } from "react";
-import { Box, Typography, Card, CardContent, CardHeader, CardActions, Button } from "@mui/material";
+import { Box, Typography, Card, CardContent, CardHeader, CardActions, Button, Dialog, DialogContent, DialogContentText, DialogActions, DialogTitle, TextField } from "@mui/material";
 import PendingIcon from '@mui/icons-material/Pending';
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import { updateRequest, deleteRequest } from "../helper";
 import AlertDialog from "../Misc/AlertDialog";
+import DatePickerComponent from "../Misc/DatePicker";
+import dayjs from "dayjs";
 
 export default function RequestCardList({ requests, canDecide, onUpdate }) {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [reqToDelete, setReqToDelete] = useState(null);
+    const [open, setOpen] = useState(false);
+    const [openAp, setOpenAp] = useState(false);
+    const [reqToDecline, setReqToDecline] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(dayjs().add(1, 'day'));
+    const [reqToApprove, setReqToApprove] = useState(null);
 
     const getStatusIcon = (status) => {
         switch(status) {
@@ -18,6 +25,52 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
             default: return null;
         }
     }
+
+    const handleClickOpen = (type, req_id) => {
+        if (type === 'dc') {
+            setReqToDecline(req_id);
+            setOpen(true);
+        }
+        if (type === 'ap') {
+            setReqToApprove(req_id);
+            setOpenAp(true);
+        }
+    };
+
+    const handleApproveSubmit = async () => {
+        if (!reqToApprove || !selectedDate) return;
+
+        try {
+            await handleRequestUpdate(reqToApprove, 'approve', null, selectedDate);
+        } finally {
+            handleClose('ap');
+            setSelectedDate(null);
+            setReqToApprove(null);
+        }
+    };
+
+    const handleClose = (type) => {
+        setReqToDecline(null);
+        if (type === 'ap') {
+            setOpenAp(false);
+            setReqToApprove(null);
+            setSelectedDate(dayjs().add(1, 'day'));
+        }
+        if (type === 'dc') {
+            setOpen(false);
+            setReqToDecline(null);
+        }
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        const formJson = Object.fromEntries(formData.entries());
+        const reason = formJson.reason;
+        if (!reqToDecline) return;
+        await handleRequestUpdate(reqToDecline, 'decline', reason)
+        handleClose();
+    };
 
     const handleCancelClick = useCallback((req_id) => {
         setReqToDelete(req_id);
@@ -43,12 +96,6 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
         setReqToDelete(null);
     },[]);
 
-    /*
-    const handleRequestDelete = async (req_id) => {
-        await deleteRequest({request_id: req_id})
-        onUpdate();
-    };
-*/
     const handleRequestUpdate = async (req_id, act, reason, expires_at) => {
         await updateRequest({
             request_id: req_id,
@@ -93,11 +140,58 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                         <CardActions>
                             {canDecide ? (
                                 <>
-                                <Button size="medium" color="success" onClick={() => handleRequestUpdate(r.id, 'approve', null, '2025-12-01')}>Approve</Button>
-                                <Button size="medium" color="error" onClick={() => handleRequestUpdate(r.id, 'decline', 'Not sufficient')}>Decline</Button>
+                                    <Button variant="outlined" size="medium" color="success"
+                                        onClick={() => handleClickOpen('ap', r.id)}
+                                    >
+                                        Approve
+                                    </Button>
+                                    <Dialog open={openAp} onClose={() => handleClose('ap')}>
+                                        <DialogTitle>Expiry Date</DialogTitle>
+                                        <DialogContent>
+                                            <DatePickerComponent value={selectedDate} onChange={(date) => setSelectedDate(date)}/>
+                                        </DialogContent>
+                                        <DialogActions>
+                                            <Button onClick={() => handleClose('ap')}>Cancel</Button>
+                                            <Button type="submit" form="subscription-form" onClick={handleApproveSubmit}>
+                                                Submit
+                                            </Button>
+                                        </DialogActions>
+                                    </Dialog>
+
+                                    <Button variant="outlined" size="medium" color="error" 
+                                        onClick={() => handleClickOpen('dc', r.id)}
+                                    >
+                                        Decline
+                                    </Button>
+                                    <Dialog open={open} onClose={() => handleClose('dc')}>
+                                        <DialogTitle>Decline Request</DialogTitle>
+                                        <DialogContent>
+                                            <DialogContentText>
+                                                Provide a reason why you declined the request.
+                                            </DialogContentText>
+                                            <form onSubmit={handleSubmit} id="subscription-form">
+                                                <TextField
+                                                autoFocus
+                                                margin="dense"
+                                                id="name"
+                                                name="reason"
+                                                label="Reason"
+                                                type="text"
+                                                fullWidth
+                                                variant="standard"
+                                                />
+                                            </form>
+                                        </DialogContent>
+                                        <DialogActions>
+                                        <Button onClick={() => handleClose('dc')}>Cancel</Button>
+                                        <Button type="submit" form="subscription-form">
+                                            Decline
+                                        </Button>
+                                        </DialogActions>
+                                    </Dialog>
                                 </>
                             ) : ( 
-                                <Button size="medium" color="primary" onClick={() => handleCancelClick(r.id)}>Cancel Request</Button>
+                                <Button variant="outlined" size="medium" color="primary" onClick={() => handleCancelClick(r.id)}>Cancel Request</Button>
                             )}
                         </CardActions>
                     )}

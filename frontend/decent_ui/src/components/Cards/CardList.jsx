@@ -14,6 +14,12 @@ export default function CardList({ identities }) {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selected, setSelected] = useState(() => new Set());
 
+    const handleIdentityUpdated = (id, newIsActive) => {
+        setIdentity(prev => 
+            prev.map(identity => identity.id === id ? { ...identity, is_active: newIsActive } : identity)
+        );
+    };
+
     const handleMassDelete = useCallback(async () => {
         if (selected.size === 0) return;
         setDialogOpen(true);
@@ -72,24 +78,6 @@ export default function CardList({ identities }) {
         });
     }, [setIdentity]);
 
-    /*
-    const handleMassDelete = useCallback(async () => {
-        if (selected.size === 0) return;
-        const ok = window.confirm(`Permanentely delete ${selected.size} selected identities?`);
-        if (!ok) return;
-
-        const idsDelete = [...selected];
-
-        try {
-            await deleteIdentities(idsDelete);
-            setIdentity(prev => prev.filter(i => !selected.has(i.id)));
-            setSelected(new Set());
-        } catch (err) {
-            console.error("Bulk deletion failed", err);
-        }
-    }, [selected, setIdentity]);
-    */
-
     if (!Array.isArray(identities) || identities.length === 0) {
         return <Typography sx={{ mt: 3 }}> You don't have any identities yet.</Typography>;
     }
@@ -110,8 +98,8 @@ export default function CardList({ identities }) {
                 </Box>
                 <Box sx={{flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
                     <ButtonGroup variant='outlined' disabled={!someSelected && !allSelected}>
-                        <Button startIcon={<DownloadIcon />} onClick={() => handleDownload('test', identities, [...selected])}>Download</Button>
-                        <Button startIcon={<ShareIcon />}>Share</Button>
+                        <Button startIcon={<DownloadIcon />} onClick={() => handleDownload('Identities', identities, [...selected])}>Download</Button>
+                        <Button startIcon={<ShareIcon />} disabled={true}>Share</Button>
                         <Button startIcon={<DeleteIcon />} onClick={handleMassDelete}>Delete</Button>
                     </ButtonGroup>
                 </Box>
@@ -142,6 +130,7 @@ export default function CardList({ identities }) {
                             key={identity.id} 
                             identity={identity} 
                             onDeleted={handleDeleted}
+                            onUpdated={handleIdentityUpdated}
                         />
                     </Box>
                 </Box>

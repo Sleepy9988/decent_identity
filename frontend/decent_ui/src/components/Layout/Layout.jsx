@@ -16,7 +16,7 @@ const Layout = ({ children }) => {
     const isLoginPage = location.pathname === '/';
 
     const { isConnected } = useWeb3AuthConnect();
-    const { did, agent } = useAgent();
+    const { did } = useAgent();
 
     const loggedIn = isConnected && did;
 

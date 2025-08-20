@@ -9,11 +9,9 @@ import { useNavigate } from "react-router-dom";
 
 const ConnectWeb3AuthButton = () => {
     const { setAgent, setDid, setIdentity, setSignature, setMeta } = useAgent();
-    const { connect, isConnected  } = useWeb3AuthConnect();
+    const { connect } = useWeb3AuthConnect();
     const navigate = useNavigate();
-
-    if (isConnected) return null;
-
+    
     return (
         <Button 
             variant="contained" 

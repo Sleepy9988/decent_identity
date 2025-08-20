@@ -210,6 +210,33 @@ export const deleteIdentities = async (ids) => {
     }
 };
 
+export const updateIdentity = async(identity_id, is_active) => {
+    const token = localStorage.getItem('accessToken');
+    
+    try {
+        const response = await fetch(`http://localhost:8000/api/me/identity/${encodeURIComponent(identity_id)}/active/`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ is_active }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || 'Error changing identity visibility');
+        }
+        return data;
+    } catch (err) {
+        console.error('Failed to change identity:', err);
+        throw err;
+    }
+}
+
+
 export const getContexts = async (did) => {
     const token = localStorage.getItem('accessToken');
     

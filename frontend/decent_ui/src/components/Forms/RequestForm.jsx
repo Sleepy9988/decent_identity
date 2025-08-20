@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, InputBase, Button, IconButton, Paper, Divider, Typography, List, ListItem, ListItemText } from "@mui/material";
+import { Box, InputBase, IconButton, Paper, Divider, Typography, List, ListItem, ListItemText } from "@mui/material";
 import { getContexts } from '../helper';
 import FormDialog from './RequestFormDialog';
 import CloseIcon from '@mui/icons-material/Close';
@@ -8,7 +8,7 @@ import { postRequest } from "../helper";
 import { useAgent } from '../../services/AgentContext';
 import SnackbarAlert from "../Misc/Snackbar";
 
-export default function RequestForm({ onNewRequest }) {
+export default function RequestForm({ created_reqs, onNewRequest }) {
     const [value, setValue] = useState('');
     const [contexts, setContexts] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -17,7 +17,9 @@ export default function RequestForm({ onNewRequest }) {
     const [alertType, setAlertType] = useState('error');
 
     const { agent, did } = useAgent();
-    
+
+    const created_req_list = created_reqs.map(x => x.context_id);
+
     const handleClick = async (e) => {
         e.preventDefault();
         setMessage(null);
@@ -102,6 +104,7 @@ export default function RequestForm({ onNewRequest }) {
                                 <ListItem 
                                     secondaryAction={ 
                                         <FormDialog 
+                                            requested_already={created_req_list.includes(c.id)}
                                             contextId={c.id}
                                             onSubmitRequest={(purpose) => handlePostRequest(c.id, purpose)} />
                                     }    

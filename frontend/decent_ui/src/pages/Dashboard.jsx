@@ -67,8 +67,8 @@ const Dashboard = () => {
                             </ButtonGroup>
                         </Box>
                         <Box>
-                            <Typography sx={{ mt: 3, fontSize: '1.2rem',textAlign: 'left', mb: 1.5}}>Account creation: &emsp;{creation_date} </Typography>
-                            <Typography sx={{ textAlign: 'left',fontSize: '1.2rem'}}>Last access: &emsp; &emsp; &emsp;{last_access}</Typography>
+                            <Typography sx={{ mt: 3, fontSize: '1.2rem',textAlign: 'left', mb: 1.5}}>Account creation:&emsp;{creation_date} </Typography>
+                            <Typography sx={{ textAlign: 'left',fontSize: '1.2rem'}}>Last access:&emsp;&emsp;&emsp;{last_access}</Typography>
                         </Box>
                     </CardContent>
                 </Card>

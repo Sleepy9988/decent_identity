@@ -38,6 +38,11 @@ class IdentitySerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
+
+class IdentityActiveSerializer(serializers.Serializer):
+    is_active = serializers.BooleanField(required=True)
+
+    
 class MassDeleteSerializer(serializers.Serializer):
     ids = serializers.ListField(
         child=serializers.UUIDField(format='hex_verbose'),
