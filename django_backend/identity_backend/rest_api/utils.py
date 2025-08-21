@@ -1,10 +1,8 @@
-import requests 
-import logging
-from hashlib import sha256
+import requests, logging, re, json
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('rest_api')
 
 def verify_with_veramo(endpoint, json_data):
 
@@ -24,13 +22,15 @@ def verify_with_veramo(endpoint, json_data):
     
 
 def notify_did(did, payload):
-
     channel_layer = get_channel_layer()
-    
     if channel_layer is None:
         return
     
-    group_name = sha256(did.encode('utf-8')).hexdigest()
+    sanitized_did = re.sub(r'[^a-zA-Z0-9-._]+', '_', did)
+    group_name = f"user_{sanitized_did}"
+    
+    logger.info(f"notify_did called for DID: {sanitized_did}")
+    logger.debug(f"Payload: {group_name}")
 
     async_to_sync(channel_layer.group_send)(
         group_name,

@@ -27,10 +27,13 @@ export const AgentProvider = ({ children }) => {
 
     const { disconnect } = useWeb3AuthDisconnect();
    
-    
     const handleLogout = useCallback(() => {
         logoutUser({ setAgent, setDid, setSignature, setMeta, disconnect });
     }, [setAgent, setDid, setSignature, setMeta, disconnect]);
+
+    const clearNotifications = useCallback(() => {
+        setNotifications([]);
+    }, []);
 
     useEffect(() => {
         const restoreSession = async () => {
@@ -104,22 +107,23 @@ export const AgentProvider = ({ children }) => {
 
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
-        if (did && !socket) {
-            try {
-                const newSocket = new WebSocket(`ws://localhost:8001/ws/notifications/${encodeURIComponent(did)}/?token=${encodeURIComponent(token)}`);
-                setSocket(newSocket);
 
-                newSocket.onopen = () => console.log("WebSocket connected.");
-                newSocket.onmessage = (e) => setNotifications(prev => [...prev, JSON.parse(e.data)]);
-                newSocket.onclose = (e) => {
-                    console.log("WebSocket disconnected.", e);
-                    setSocket(null);
-                }
-                newSocket.onerror = (err) => console.error("WebSocket error:", err);
-            } catch (err) {
-                console.error("Failed to establish WebSocket conenction", err);
-            }
+        if (!did || !token) return;
+        
+        const newSocket = new WebSocket(`ws://localhost:8000/ws/notifications/${encodeURIComponent(did)}/?token=${encodeURIComponent(token)}`);
+        setSocket(newSocket);
+
+        newSocket.onopen = () => console.log("WebSocket connected.");
+        newSocket.onmessage = (e) => {
+            console.log('WebSocket received:', e.data);
+            setNotifications(prev => [...prev, JSON.parse(e.data)]);
+        };
+        newSocket.onclose = (e) => {
+            console.log("WebSocket disconnected.", e);
+            setSocket(null);
         }
+        newSocket.onerror = (err) => console.error("WebSocket error:", err);
+        
         return () => {
             if (socket) {
                 socket.close();
@@ -133,9 +137,10 @@ export const AgentProvider = ({ children }) => {
         id, setIdentity, 
         signature, setSignature, 
         meta, setMeta, 
-        notifications,
+        notifications, setNotifications,
+        clearNotifications,
         handleLogout
-    }), [agent, did, id, signature, meta, notifications, handleLogout]);
+    }), [agent, did, id, signature, meta, notifications, handleLogout, clearNotifications]);
 
     return (
         <AgentContext.Provider value={ value }>{ children }</AgentContext.Provider>

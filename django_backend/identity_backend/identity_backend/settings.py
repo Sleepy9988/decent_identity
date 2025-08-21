@@ -41,9 +41,9 @@ logging.config.dictConfig({
         'level': 'WARNING',
     },
     'loggers': {
-        'django': {
+        'rest_api': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': LOGLEVEL,
             'propagate': False,
         },
         'app': {

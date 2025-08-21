@@ -20,13 +20,10 @@ from .serializers import IdentitySerializer, MassDeleteSerializer, RequestListSe
 from django.db import transaction
 
 # Import supporting Python libraries
-import secrets
-import logging
-import requests
-import json
+import secrets, logging, requests, json
 
 # Logging setup for easier debugging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('rest_api')
 
 # API GET endpoint to generate a random, unique nonce (login challenge)
 class LoginChallengeView(APIView):
@@ -428,7 +425,7 @@ class CreateRequestView(APIView):
             "event": "new request received", 
             "request_id": str(req.id), 
             "from": requestor_did, 
-            "context": identity, 
+            "context": { "context": identity.context},
             "created_at": req.created_at.isoformat(), 
         }) 
         

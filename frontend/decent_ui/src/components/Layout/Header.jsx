@@ -4,13 +4,13 @@ import { Box, Typography, Toolbar, Link, Badge} from "@mui/material";
 import { Link as RouterLink } from 'react-router-dom';
 import { DisconnectWeb3AuthButton } from '../Buttons';
 
-import NotificationsIcon from '@mui/icons-material/Notifications';
+import NotificationPopover  from '../Misc/NotificationPopover';
 
-import { useAgent } from '../../services/AgentContext';
+
 
 export default function Header({ loggedIn }) {
-  const { notifications } = useAgent();
-  
+
+
   return (
     <AppBar position='fixed' sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: '#15222e', py:2 }}>
       <Toolbar >
@@ -23,10 +23,8 @@ export default function Header({ loggedIn }) {
             </Link>
         </Box>
         {loggedIn ? (
-          <Box>
-            <Badge color='primary' sx={{mr: 10}} badgeContent={notifications.length}>
-              <NotificationsIcon fontSize="large" color='action' />
-            </Badge>
+          <Box sx={{ display: 'flex', direction: 'row', justifyContent: 'space-between'}}>
+            <NotificationPopover />
             <DisconnectWeb3AuthButton />
           </Box>
         ) : null
