@@ -1,8 +1,11 @@
 from rest_framework import serializers
-from .models import Identity, Request
+from .models import Identity, Request, SharedData
 from django.utils import timezone
 
-import secrets
+import secrets, json
+from .cryptographic_utils import generate_encKey, fernet_encKey, wrap_key_w_signature
+from jwcrypto import jwk, jwe
+
 
 class IdentitySerializer(serializers.ModelSerializer):
     decrypted_data = serializers.SerializerMethodField()
@@ -65,10 +68,11 @@ class RequestUpdateSerializer(serializers.ModelSerializer):
     action = serializers.ChoiceField(choices=['approve', 'decline'], write_only=True) 
     reason = serializers.CharField(required=False, allow_blank=True) 
     expires_at = serializers.DateTimeField(required=False, allow_null=True) 
+    signature_holder = serializers.CharField(write_only=True, required=False, allow_blank=False)
     
     class Meta: 
         model = Request 
-        fields = ['action', 'reason', 'expires_at'] 
+        fields = ['action', 'reason', 'expires_at', 'signature_holder'] 
         
     def validate(self, attrs): 
         req: Request = self.instance 
@@ -82,25 +86,71 @@ class RequestUpdateSerializer(serializers.ModelSerializer):
             
             if exp and exp <= timezone.now(): 
                 raise serializers.ValidationError('Expiration data must be in the future.') 
-            else: 
-                if not attrs.get('reason'): 
-                    attrs['reason'] = 'Declined by holder.' 
+        
+            if not attrs.get('signature_holder'):
+                raise serializers.ValidationError('Missing holder signature.')
+        
+            if not req.requestor_signature:
+                raise serializers.ValidationError('Requestor signature not present on the request.')
+            
+        elif action == 'decline': 
+            if not attrs.get('reason'): 
+                attrs['reason'] = 'Declined by holder.' 
         return attrs 
     
     def update(self, instance: Request, validated): 
         action = validated['action'] 
-        
+        update_fields = ['status']
+
         if action == 'approve': 
             instance.status = Request.Status.APPROVED 
             instance.approved_at = timezone.now() 
+            update_fields.append('approved_at')
+            
             if 'expires_at' in validated: 
                 instance.expires_at = validated['expires_at'] 
-                instance.reason = None 
+                update_fields.append('expires_at')
+            
+            instance.reason = None 
+            update_fields.append('reason')
+
+            ##### this is the new step
+
+            identity = instance.context 
+
+            signature_holder = validated.get('signature_holder')
+            signature_requestor = instance.requestor_signature
+          
+            raw_data = identity.retrieve_decrypted_data(signature_holder)
+            if raw_data is None:
+                raise serializers.ValidationError("Unable to decrypt original identity data.")
+
+            encKey = generate_encKey()
+            f = fernet_encKey(encKey)
+            enc_data = f.encrypt(json.dumps(raw_data).encode('utf-8'))
+
+            wrap_salt = secrets.token_bytes(16)
+            encKey_wrapped = wrap_key_w_signature(encKey, signature_requestor, wrap_salt)
+
+            SharedData.objects.update_or_create(
+                request=instance, 
+                defaults={
+                    'enc_data': enc_data, 
+                    'encKey_wrapped': encKey_wrapped,
+                    'wrap_salt': wrap_salt
+                }
+            )
+
+            #### until here 
+
         else: 
             instance.status = Request.Status.DECLINED 
             instance.reason = validated.get('reason') or instance.reason 
             instance.expires_at = None 
             instance.approved_at = None 
+            update_fields += ['reason', 'expires_at', 'approved_at']
             
-        instance.save(update_fields=['status', 'approved_at', 'expires_at', 'reason'])         
+        instance.save(update_fields=update_fields)         
         return instance
+    
+

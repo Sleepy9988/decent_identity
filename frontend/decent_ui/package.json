@@ -10,8 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/react": "^11.14.1",
-    "@emotion/styled": "^11.14.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
     "@mui/x-date-pickers": "^8.10.0",
@@ -31,6 +31,7 @@
     "@web3auth/openlogin-adapter": "^8.12.4",
     "dayjs": "^1.11.13",
     "ethr-did": "^3.0.38",
+    "fernet": "^0.3.3",
     "install": "^0.13.0",
     "jwt-decode": "^4.0.0",
     "process": "^0.11.10",
@@ -53,8 +54,5 @@
     "vite": "^6.3.5",
     "vite-plugin-commonjs": "^0.10.4",
     "vite-plugin-node-polyfills": "^0.23.0"
-  },
-  "overrides": {
-    "@emotion/react": "^11.14.1"
   }
 }

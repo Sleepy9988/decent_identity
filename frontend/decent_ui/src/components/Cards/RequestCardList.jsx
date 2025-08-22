@@ -3,10 +3,12 @@ import { Box, Typography, Card, CardContent, CardHeader, CardActions, Button, Di
 import PendingIcon from '@mui/icons-material/Pending';
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
-import { updateRequest, deleteRequest } from "../helper";
+import { updateRequest, deleteRequest, accessApprovedData } from "../helper";
 import AlertDialog from "../Misc/AlertDialog";
 import DatePickerComponent from "../Misc/DatePicker";
 import dayjs from "dayjs";
+
+import { useAgent } from '../../services/AgentContext';
 
 export default function RequestCardList({ requests, canDecide, onUpdate }) {
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -16,6 +18,9 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
     const [reqToDecline, setReqToDecline] = useState(null);
     const [selectedDate, setSelectedDate] = useState(dayjs().add(1, 'day'));
     const [reqToApprove, setReqToApprove] = useState(null);
+
+    //const { signature } = useAgent();
+    const signature = localStorage.getItem('signature');
 
     const getStatusIcon = (status) => {
         switch(status) {
@@ -97,16 +102,32 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
     },[]);
 
     const handleRequestUpdate = async (req_id, act, reason, expires_at) => {
-        await updateRequest({
-            request_id: req_id,
-            updates: { 
-                action: act, 
-                ...(reason ? { reason } : {}),
-                ...(expires_at ? { expires_at: new Date(expires_at).toISOString() } : {}),
-         }
-        });
+        const updates = {
+            action: act,
+            ...(reason ? { reason } : {}),
+            ...(expires_at ? { expires_at: new Date(expires_at).toISOString() } : {}),
+            ...(act === 'approve' ? {
+                signature_holder: signature,
+            } : {}),
+        };
+
+        await updateRequest({ request_id: req_id, updates });
         onUpdate();
     };
+
+
+    const handleAccessApprovedData = async (reqId) => {
+        try {
+            if (!signature) {
+                console.error('Missing signature.');
+                return;
+            }
+            const res = await accessApprovedData({ request_id: reqId, signature })
+            console.log('Decrypted data:', res.data);
+        } catch (err) {
+            console.error("Error accessing approved data:", err);
+        }
+    }
 
     if (!Array.isArray(requests) || requests.length === 0) {
         return <Typography sx={{ mt: 3 }}> There are no requests yet.</Typography>;
@@ -193,6 +214,13 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                             ) : ( 
                                 <Button variant="outlined" size="medium" color="primary" onClick={() => handleCancelClick(r.id)}>Cancel Request</Button>
                             )}
+                        </CardActions>
+                    )}
+                    {r.status === 'Approved' && (
+                        <CardActions>
+                            {!canDecide ? (
+                                <Button variant="outlined" size="medium" color="warning" onClick={() => handleAccessApprovedData(r.id)}>Access Data</Button>
+                            ) : ( <></>)}
                         </CardActions>
                     )}
                 </Card>

@@ -7,6 +7,9 @@ from .cryptographic_utils import encrypt, decrypt
 
 import uuid
 import json
+import logging 
+
+logger = logging.getLogger('rest_api')
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -46,7 +49,7 @@ class Identity(models.Model):
             decrypted = decrypt(self.enc_data, signature.encode(), self.salt)
             return json.loads(decrypted.decode())
         except Exception as e:
-            print(e)
+            logger.debug(e)
             return None
     
     def save(self, *args, **kwargs):
@@ -75,6 +78,8 @@ class Request(models.Model):
     approved_at = models.DateTimeField(null=True, blank=True) 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True) 
     updated_at = models.DateTimeField(auto_now=True) 
+    requestor_pubkey = models.JSONField(blank=True, null=True)
+    requestor_signature = models.TextField(blank=True, null=True)
     
     class Meta: 
         indexes = [ 
@@ -98,5 +103,21 @@ class Request(models.Model):
         
     def __str__(self): 
         return f"{self.requestor.did} - {self.holder.did} [{self.context}] ({self.get_status_display()})" 
+
+
+class SharedData(models.Model):
+    request = models.OneToOneField(Request, on_delete=models.CASCADE, related_name='shared_data')
+    enc_data = models.BinaryField()
+    encKey_wrapped = models.BinaryField()
+    wrap_salt = models.BinaryField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"SharedData for request {self.request.id}"
+
+    class Meta: 
+        verbose_name = "Shared Encrypted Data"
+        verbose_name_plural = "Shared Encrypted Data"
+        ordering = ['-created_at'] 
 
     

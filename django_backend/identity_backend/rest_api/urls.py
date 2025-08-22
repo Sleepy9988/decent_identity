@@ -12,7 +12,8 @@ from .api import (
     GetRequests,
     UpdateRequestView,
     DeleteRequestView,
-    UpdateIdentityActiveView
+    UpdateIdentityActiveView,
+    RetrieveSharedDataView
 )
 
 urlpatterns = [
@@ -29,4 +30,5 @@ urlpatterns = [
       path('me/requests/', GetRequests.as_view(), name='get_requests'),
       path('requests/update/<uuid:request_id>/', UpdateRequestView.as_view(), name='update_requests'),
       path('me/request/delete/<uuid:request_id>/', DeleteRequestView.as_view(), name='delete_request'),
+      path('shared-data/<uuid:request_id>/', RetrieveSharedDataView.as_view(), name='grant_data_access'),
 ]

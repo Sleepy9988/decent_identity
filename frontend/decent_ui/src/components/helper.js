@@ -269,6 +269,7 @@ export const getContexts = async (did) => {
 
 export const postRequest = async ({did, agent, holderDid, contextId, purpose}) => {
     const token = localStorage.getItem('accessToken');
+    const signature = localStorage.getItem('signature');
 
     const challengeResponse = await fetch(
         'http://localhost:8000/api/requests/challenge', 
@@ -289,7 +290,8 @@ export const postRequest = async ({did, agent, holderDid, contextId, purpose}) =
                 requestorDid: did,
                 holderDid,
                 contextId,
-                purpose
+                purpose,
+                requestorSignature: signature,
             },
         },
         proofFormat: 'EthereumEip712Signature2021',
@@ -403,6 +405,32 @@ export const deleteRequest = async({ request_id }) => {
         }
     } catch (err) {
         console.error('Failed to delete request', err);
+        throw err;
+    }
+}
+
+export const accessApprovedData = async({ request_id, signature }) => {
+    const token = localStorage.getItem('accessToken');
+    const encReq = encodeURIComponent(request_id);
+
+    try {
+        const response = await fetch(`http://localhost:8000/api/shared-data/${encReq}/`, {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ signature }),
+    });
+        const result = await response.json()
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to create request.');
+        }
+        return result;
+
+    } catch (err) {
+        console.error('Failed to retrieve data');
         throw err;
     }
 }

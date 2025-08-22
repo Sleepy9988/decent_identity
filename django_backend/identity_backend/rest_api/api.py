@@ -19,8 +19,10 @@ from .utils import verify_with_veramo, notify_did
 from .serializers import IdentitySerializer, MassDeleteSerializer, RequestListSerializer, RequestUpdateSerializer, IdentityActiveSerializer
 from django.db import transaction
 
+from .cryptographic_utils import unwrap_key_w_signature, fernet_encKey
+
 # Import supporting Python libraries
-import secrets, logging, requests, json
+import secrets, logging, requests, json, base64
 
 # Logging setup for easier debugging
 logger = logging.getLogger('rest_api')
@@ -392,6 +394,8 @@ class CreateRequestView(APIView):
         holder_did = subject.get('holderDid') 
         context_id = subject.get('contextId') 
         purpose = subject.get('purpose') 
+        requestor_pubkey = subject.get('requestorPubKeyJwk')
+        requestor_signature = subject.get('requestorSignature') or request.data.get('signature')
         
         if not all([requestor_did, holder_did, context_id]): 
             return Response({'error': 'Incomplete information in the credentialSubject'}, status=status.HTTP_400_BAD_REQUEST) 
@@ -419,7 +423,10 @@ class CreateRequestView(APIView):
             purpose=purpose, 
             status=Request.Status.PENDING, 
             challenge=vp_challenge, 
-            presentation=vc ) 
+            presentation=vc,
+            requestor_pubkey=requestor_pubkey, 
+            requestor_signature=requestor_signature,    
+        ) 
         
         notify_did(holder_did, { 
             "event": "new request received", 
@@ -516,3 +523,41 @@ class UpdateRequestView(APIView):
             ) 
             return Response(RequestListSerializer(instance).data, status=status.HTTP_200_OK) 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+class RetrieveSharedDataView(APIView):
+    authentication_classes = [JWTAuthentication] 
+    permission_classes = [IsAuthenticated] 
+
+    def post(self, request, request_id):
+        try:
+            req = Request.objects.select_related('shared_data', 'requestor__user').get(
+                id=request_id, requestor__user=request.user)
+        except Request.DoesNotExist:
+            return Response({'error': 'No approved request found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if req.status != Request.Status.APPROVED:
+            return Response({'error': 'Request is not approved.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if req.expires_at and req.expires_at <= timezone.now():
+            return Response({'error': 'Access expired.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        shared_data = getattr(req, 'shared_data', None)
+        if not shared_data:
+            return Response({'error': 'No shared data available for this request.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        signature = request.data.get('signature')
+        if not signature:
+            return Response({'error': 'Missing signature'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            enc_key = unwrap_key_w_signature(shared_data.encKey_wrapped, signature, shared_data.wrap_salt)
+
+            f = fernet_encKey(enc_key)
+            plaintext_bytes = f.decrypt(shared_data.enc_data)
+            data = json.loads(plaintext_bytes.decode('utf-8'))
+        except Exception:
+            return Response({'error': 'Decryption failed. Invalid signture or data.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        return Response({'data': data}, status=status.HTTP_200_OK)
