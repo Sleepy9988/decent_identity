@@ -1,8 +1,9 @@
-export const logoutUser = async ({ setAgent, setDid, setSignature, setMeta, disconnect }) => {
+export const logoutUser = async ({ setAgent, setDid, setSignature, setMeta, disconnect, setIsAuthenticated }) => {
     setAgent(null);
     setDid(null);
     setSignature(null);
     setMeta(null);
+    setIsAuthenticated(false);
 
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
@@ -20,6 +21,4 @@ export const logoutUser = async ({ setAgent, setDid, setSignature, setMeta, disc
     } catch (err) {
         console.warn('Web3Auth logout failed:', err);
     }
-    
-    //window.location.href = '/'
 }

@@ -1,6 +1,10 @@
-
+import { isTokenExpired } from "./tokenExpiration";
 
 export const refreshAccessToken = async (refreshToken) => {
+    if (isTokenExpired(refreshToken)) {
+        throw new Error('Refresh token has expired');
+    }
+
     const res = await fetch('http://localhost:8000/api/token/refresh/', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},

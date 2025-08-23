@@ -9,9 +9,9 @@ import { useAgent } from '../services/AgentContext';
 const Login = () => {
     const navigate = useNavigate();
     const { isConnected } = useWeb3AuthConnect();
-    const { did } = useAgent();
+    const { isAuthenticated } = useAgent();
     
-    const loggedIn = isConnected && did;
+    const loggedIn = isConnected && isAuthenticated;
 
     useEffect(() => {
         if (loggedIn) {

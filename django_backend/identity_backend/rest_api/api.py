@@ -1,4 +1,3 @@
-# Import standard Django and Django Rest Framework modules
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -394,7 +393,7 @@ class CreateRequestView(APIView):
         holder_did = subject.get('holderDid') 
         context_id = subject.get('contextId') 
         purpose = subject.get('purpose') 
-        requestor_pubkey = subject.get('requestorPubKeyJwk')
+        #requestor_pubkey = subject.get('requestorPubKeyJwk')
         requestor_signature = subject.get('requestorSignature') or request.data.get('signature')
         
         if not all([requestor_did, holder_did, context_id]): 
@@ -424,7 +423,7 @@ class CreateRequestView(APIView):
             status=Request.Status.PENDING, 
             challenge=vp_challenge, 
             presentation=vc,
-            requestor_pubkey=requestor_pubkey, 
+            #requestor_pubkey=requestor_pubkey, 
             requestor_signature=requestor_signature,    
         ) 
         
@@ -513,7 +512,7 @@ class UpdateRequestView(APIView):
             instance = serializer.save() 
             
             notify_did(instance.requestor.did, { 
-                "event": "new request received", 
+                "event": "request answer received", 
                 "request_id": str(instance.id), 
                 "status": instance.get_status_display(), 
                 "expires_at": instance.expires_at.isoformat() 

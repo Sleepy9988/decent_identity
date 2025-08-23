@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { checkDidOnChain } from '../components/helper.js';
 import { useAgent } from '../services/AgentContext';
 import { ethers } from "ethers";
-import { Box, Container, Typography, Button, Card, CardContent, Divider, ButtonGroup, Dialog, DialogContent} from '@mui/material';
+import { Box, Container, Typography, Card, CardContent, Divider, 
+            ButtonGroup, Dialog, DialogContent, Checkbox, FormControlLabel, 
+            TableContainer, Table, TableRow, Paper, TableCell, TableBody
+        } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IconButton from '@mui/material/IconButton';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
@@ -13,6 +16,17 @@ import { QRCodeCanvas } from 'qrcode.react';
 const Dashboard = () => {
     const { did, id, meta } = useAgent();
     const [qrOpen, setQROpen] = useState(false);
+    const [isAnchored, setIsAnchored] = useState(false);
+
+    useEffect(() => {
+        const checkDidAnchored = async () => {
+            const res = await checkDidOnChain(did);
+            setIsAnchored(res);
+        }
+        if (did) {
+            checkDidAnchored();
+        }
+    }, [did]);
 
     if (!did || !meta) {
         return (
@@ -28,7 +42,7 @@ const Dashboard = () => {
     const last_access = new Date(meta.access).toLocaleString();
     const ethBalance = ethers.formatEther(meta.balance);
     const formattedBalance = parseFloat(ethBalance).toFixed(5);
-  
+
     return (
         <Box>
             <Box component='section' sx={{ mt: 4}}>
@@ -91,10 +105,30 @@ const Dashboard = () => {
                 <Typography variant='h5' sx={{textAlign: 'start', mb: 3}}>
                     Ethereum Information
                 </Typography>
-                <Typography sx={{ textAlign: 'left', mb: 1.5}}>ETH balance: {formattedBalance}</Typography>
-                <Typography sx={{ textAlign: 'left', mb: 1.5}}>Number of transactions: {meta.transactions}</Typography>
-                <Typography sx={{ textAlign: 'left'}}>Network: {meta.network.name}</Typography>
-                <Button onClick={() => checkDidOnChain(did)}>Check did on Chain</Button>
+                <TableContainer sx={{maxWidth: '600px', borderRadius: 3, overflow: 'hidden'}} component={Paper}>
+                    <Table aria-label="ethereum information">
+                        <TableBody>
+                            <TableRow>
+                                <TableCell sx={{ fontSize: '1.1rem', fontWeight: 500 }}>ETH Balance</TableCell>
+                                <TableCell sx={{ fontSize: '1.1rem' }}>{formattedBalance}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell sx={{ fontSize: '1.1rem', fontWeight: 500 }}>Number of Transactions</TableCell>
+                                <TableCell sx={{ fontSize: '1.1rem' }}>{meta.transactions}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell sx={{ fontSize: '1.1rem', fontWeight: 500 }}>Network</TableCell>
+                                <TableCell sx={{ fontSize: '1.1rem' }}>{meta.network.name.toUpperCase()}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell sx={{ fontSize: '1.1rem', fontWeight: 500 }}>Anchored on Ethereum Blockchain</TableCell>
+                                <TableCell>
+                                    <Checkbox checked={isAnchored} />
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                </TableContainer>
             </Container>
         </Box>
     );

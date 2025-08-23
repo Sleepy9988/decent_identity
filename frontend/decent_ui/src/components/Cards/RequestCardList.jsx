@@ -19,8 +19,8 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
     const [selectedDate, setSelectedDate] = useState(dayjs().add(1, 'day'));
     const [reqToApprove, setReqToApprove] = useState(null);
 
-    //const { signature } = useAgent();
-    const signature = localStorage.getItem('signature');
+    const { signature } = useAgent();
+    //const signature = localStorage.getItem('signature');
 
     const getStatusIcon = (status) => {
         switch(status) {
@@ -217,12 +217,23 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                         </CardActions>
                     )}
                     {r.status === 'Approved' && (
+                        <>
                         <CardActions>
-                            {!canDecide ? (
+                            {(!canDecide && r.expires_at && new Date(r.expires_at) > new Date()) ?(
                                 <Button variant="outlined" size="medium" color="warning" onClick={() => handleAccessApprovedData(r.id)}>Access Data</Button>
-                            ) : ( <></>)}
+                            ) : ( 
+                            <Button variant="outlined" size="medium" color="warning" disabled>
+                                Expired
+                            </Button>
+                            
+                           )}
                         </CardActions>
+                        <Typography sx={{ textAlign: 'start', color: '#aaa', fontSize: 'small', ml: 1}}>
+                            Expires: {r.expires_at? new Date(r.created_at).toLocaleString() : '-'}
+                        </Typography>
+                        </>
                     )}
+                    
                 </Card>
             ))}
             <AlertDialog

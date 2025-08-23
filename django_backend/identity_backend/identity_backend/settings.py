@@ -197,7 +197,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True
@@ -205,4 +205,8 @@ SIMPLE_JWT = {
 
 CHANNEL_LAYERS = {
     'default': {'BACKEND': 'channels.layers.InMemoryChannelLayer'}
+    #"default": {
+    #    "BACKEND": "channels_redis.core.RedisChannelLayer",
+    #    "CONFIG": {"hosts": [("redis", 6379)]},
+    #}
 }

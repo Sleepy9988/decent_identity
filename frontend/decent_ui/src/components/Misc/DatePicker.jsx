@@ -2,14 +2,14 @@ import * as React from 'react';
 import { Box } from '@mui/material';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 
 export default function DatePickerComponent({value, onChange}) {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ mt: 1 }}>
-            <DatePicker 
+            <DateTimePicker 
                 label="Expiry Date" 
                 name="startDate" 
                 value={value}

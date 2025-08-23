@@ -9,7 +9,7 @@ class IdentityAdmin(admin.ModelAdmin):
 
 class RequestAdmin(admin.ModelAdmin):
     list_display = ('id', 'requestor', 'holder', 'context', 'purpose', 'status', 'reason', 
-                    'expires_at', 'challenge', 'presentation', 'approved_by', 'approved_at', 'created_at', 'updated_at', 'requestor_pubkey')
+                    'expires_at', 'challenge', 'presentation', 'approved_by', 'approved_at', 'created_at', 'updated_at', 'requestor_signature')
     
 class SharedDataAdmin(admin.ModelAdmin):
     list_display = ('request', 'created_at', 'enc_data')

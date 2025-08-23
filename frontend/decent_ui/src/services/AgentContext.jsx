@@ -10,9 +10,10 @@ const AgentContext = createContext();
 export const useAgent = () => useContext(AgentContext);
 
 export const AgentProvider = ({ children }) => {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [agent, setAgent] = useState(null);
     const [did, setDid] = useState(() => localStorage.getItem('did'));
-    const [signature, setSignature] = useState(null);
+    const [signature, setSignature] = useState(() => localStorage.getItem('signature'));
     const [id, setIdentity] = useState([]);
     const [socket, setSocket] = useState(null);
     const [notifications, setNotifications] = useState([]);
@@ -28,31 +29,39 @@ export const AgentProvider = ({ children }) => {
     const { disconnect } = useWeb3AuthDisconnect();
    
     const handleLogout = useCallback(() => {
-        logoutUser({ setAgent, setDid, setSignature, setMeta, disconnect });
-    }, [setAgent, setDid, setSignature, setMeta, disconnect]);
+        logoutUser({ setAgent, setDid, setSignature, setMeta, disconnect, setIsAuthenticated });
+    }, [setAgent, setDid, setSignature, setMeta, disconnect, setIsAuthenticated]);
 
     const clearNotifications = useCallback(() => {
         setNotifications([]);
     }, []);
+
+    const restoreIdentities = async (sig) => {
+        const ids = await getIdentities(sig);
+        setIdentity(ids.identities);
+    }
 
     useEffect(() => {
         const restoreSession = async () => {
             const storedDid = localStorage.getItem('did');
             const accessToken = localStorage.getItem('accessToken');
             const refreshToken = localStorage.getItem('refreshToken');
-            const signature = localStorage.getItem('signature');
+            const storedSignature = localStorage.getItem('signature');
 
+            if (storedSignature && signature !== storedSignature) {
+                setSignature(storedSignature)
+            }
             if (!storedDid) return;
 
             try {
                 if (accessToken && !isTokenExpired(accessToken)) {
-                    const ids = await getIdentities(signature);
-                    setIdentity(ids.identities);
+                    await restoreIdentities(storedSignature);
+                    setIsAuthenticated(true);
                 } else if (refreshToken) {
                     const newAccess = await refreshAccessToken(refreshToken);
                     localStorage.setItem('accessToken', newAccess);
-                    const ids = await getIdentities(signature);
-                    setIdentity(ids.identities);
+                    await restoreIdentities(storedSignature);
+                    setIsAuthenticated(true);
                 } else {
                     handleLogout();
                 }
@@ -62,7 +71,7 @@ export const AgentProvider = ({ children }) => {
             }
         };
         restoreSession();
-    }, [handleLogout]);
+    }, [handleLogout, signature]);
 
     useEffect(() => {
         if (did) {
@@ -107,29 +116,21 @@ export const AgentProvider = ({ children }) => {
 
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
-
         if (!did || !token) return;
         
         const newSocket = new WebSocket(`ws://localhost:8000/ws/notifications/${encodeURIComponent(did)}/?token=${encodeURIComponent(token)}`);
+
         setSocket(newSocket);
 
         newSocket.onopen = () => console.log("WebSocket connected.");
-        newSocket.onmessage = (e) => {
-            console.log('WebSocket received:', e.data);
-            setNotifications(prev => [...prev, JSON.parse(e.data)]);
-        };
-        newSocket.onclose = (e) => {
-            console.log("WebSocket disconnected.", e);
-            setSocket(null);
-        }
+        newSocket.onmessage = (e) => setNotifications(prev => [...prev, JSON.parse(e.data)]);
+        newSocket.onclose = (e) => console.log("WebSocket disconnected.", e);
         newSocket.onerror = (err) => console.error("WebSocket error:", err);
         
         return () => {
-            if (socket) {
-                socket.close();
-            }
+            newSocket.close();
         };
-    }, [did, socket]);
+    }, [did]);
 
     const value = useMemo(() => ({
         agent, setAgent, 
@@ -139,8 +140,10 @@ export const AgentProvider = ({ children }) => {
         meta, setMeta, 
         notifications, setNotifications,
         clearNotifications,
-        handleLogout
-    }), [agent, did, id, signature, meta, notifications, handleLogout, clearNotifications]);
+        handleLogout,
+        socket,
+        isAuthenticated, setIsAuthenticated
+    }), [agent, did, id, signature, meta, notifications, socket, handleLogout, clearNotifications, isAuthenticated]);
 
     return (
         <AgentContext.Provider value={ value }>{ children }</AgentContext.Provider>

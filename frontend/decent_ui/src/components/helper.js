@@ -11,9 +11,7 @@ export async function checkDidOnChain (did) {
         const resolver = createResolver();
         const result = await resolver.resolve(did);
         const doc = result.didDocument;
-        console.log(result, doc)
         if ( doc?.id ) {
-            console.log('DID is anchored and resolvable:', doc.id);
             return true;
         } else {
             console.warn('DID Document has no ID');

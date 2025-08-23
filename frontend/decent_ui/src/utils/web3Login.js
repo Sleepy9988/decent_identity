@@ -5,7 +5,7 @@ import { checkDIDProfile } from "../components/helper"
 
 import VeramoAgentWrapper from "../services/veramo_agent";
 
-export async function handleWeb3AuthLogin(web3authProvider, setAgent) {
+export async function handleWeb3AuthLogin(web3authProvider) {
     if (!web3authProvider) return;
 
     try {
@@ -29,7 +29,6 @@ export async function handleWeb3AuthLogin(web3authProvider, setAgent) {
         const agent = agentWrapper.getAgent();
         const did = agentWrapper.getDID();
 
-        setAgent(agent);
         localStorage.setItem('did', did);
         localStorage.setItem('signature', signature);
 
@@ -44,7 +43,7 @@ export async function handleWeb3AuthLogin(web3authProvider, setAgent) {
 
         const authenticatedDid = result.did;
 
-        return { authenticatedDid, signature, meta_data };
+        return { authenticatedDid, signature, meta_data, agent };
     
     } catch (err) {
         console.error("Error in handleCreateDIDProfile:", err);

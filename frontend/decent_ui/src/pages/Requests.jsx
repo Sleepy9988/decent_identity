@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-import { Container, Box, Typography, Tabs, Tab, Divider } from '@mui/material';
+import { Container, Box, Typography, Tabs, Tab, Divider, Autocomplete, TextField } from '@mui/material';
 import RequestForm from '../components/Forms/RequestForm';
 import RequestCardList from '../components/Cards/RequestCardList';
 
@@ -11,6 +11,7 @@ const Requests = () => {
     const [value, setValue] = useState("1");
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [status, setStatus] = useState('All');
     
     const { did } = useAgent();
 
@@ -38,8 +39,26 @@ const Requests = () => {
         setValue(newValue);
     };
 
-    const created_reqs = requests.filter((req) => req.requestor_did === did);
-    const received_reqs = requests.filter((req) => req.holder_did === did);
+    const StatusFilter = () => {
+        return ( 
+            <Autocomplete 
+                options={['All','Approved', 'Pending', 'Declined']}
+                sx={{ width: 300, mt: 5 }}
+                renderInput={(params) => <TextField { ...params} label="Status" />}
+                value={status}
+                onChange={(e, newStatus) => {
+                    setStatus(newStatus);
+                }}
+            />
+        );
+    };
+
+    const created_reqs = requests.filter((req) => {
+        return req.requestor_did === did && (status === 'All' || req.status === status);
+    });
+    const received_reqs = requests.filter((req) => {
+        req.holder_did === did && (status === 'All' || req.status === status);
+    });
 
     return (
         <Box>
@@ -59,14 +78,14 @@ const Requests = () => {
                 {value == "2" && (
                     <> 
                         {loading && <Typography sx={{ mt: 3 }}>Loading...</Typography>}
-                        
+                        <StatusFilter />
                         {!loading && <RequestCardList requests={received_reqs} canDecide={true} onUpdate={loadRequest} />}
                     </>
                 )}
                 {value == "3" && (
                     <> 
                         {loading && <Typography sx={{ mt: 3 }}>Loading...</Typography>}
-                        
+                        <StatusFilter />
                         {!loading && <RequestCardList requests={created_reqs} canDecide={false} onUpdate={loadRequest} />}
                     </>
                 )}
