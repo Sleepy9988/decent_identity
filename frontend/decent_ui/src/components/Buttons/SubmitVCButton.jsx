@@ -1,5 +1,6 @@
 import React from "react";
-import { generateIdentityCredential, getIdentities } from "../helper";
+//import { generateIdentityCredential, getIdentities } from "../helper";
+import { generateIdentityCredential, getIdentities } from "../../utils/apiHelper";
 import { useAgent } from '../../services/AgentContext';
 
 import Button from '@mui/material/Button';

@@ -1,16 +1,12 @@
 import React from 'react';
 import AppBar from '@mui/material/AppBar';
-import { Box, Typography, Toolbar, Link, Badge} from "@mui/material";
+import { Box, Typography, Toolbar, Link } from "@mui/material";
 import { Link as RouterLink } from 'react-router-dom';
 import { DisconnectWeb3AuthButton } from '../Buttons';
 
 import NotificationPopover  from '../Misc/NotificationPopover';
 
-
-
 export default function Header({ loggedIn }) {
-
-
   return (
     <AppBar position='fixed' sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: '#15222e', py:2 }}>
       <Toolbar >

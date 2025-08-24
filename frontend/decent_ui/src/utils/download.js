@@ -5,7 +5,7 @@ function jsonMaker(obj_input, selected) {
 }
 
 /* 
-    modified version of 
+    Documentation: 
     https://medium.com/@kbhattacharya75/download-text-file-from-a-website-using-only-javascript-react-958ce41be593
  */
 export function handleDownload(file_name, content, selected) {

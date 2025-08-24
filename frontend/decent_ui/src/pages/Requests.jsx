@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-
 import { Container, Box, Typography, Tabs, Tab, Divider, Autocomplete, TextField } from '@mui/material';
 import RequestForm from '../components/Forms/RequestForm';
 import RequestCardList from '../components/Cards/RequestCardList';
 
-import { getRequests} from '../components/helper';
+//import { getRequests} from '../components/helper';
+import { getRequests } from '../utils/apiHelper';
 import { useAgent } from '../services/AgentContext';
 
 const Requests = () => {

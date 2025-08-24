@@ -6,9 +6,9 @@ import { useAgent } from '../../services/AgentContext';
 
 const ProtectedRoute = () => {
     const { isConnected } = useWeb3AuthConnect();
-    const { did } = useAgent();
+    const { isAuthenticated } = useAgent();
 
-    const loggedIn = isConnected && did;
+    const loggedIn = isConnected && isAuthenticated;
 
     return loggedIn ? <Outlet /> : <Navigate to="/" replace />
 };

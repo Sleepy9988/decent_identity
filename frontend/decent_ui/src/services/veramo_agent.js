@@ -1,6 +1,6 @@
 // Import libraries and Veramo plugins
 import { createAgent} from '@veramo/core';
-import { KeyManager, MemoryKeyStore, MemoryPrivateKeyStore} from '@veramo/key-manager';
+import { KeyManager, MemoryKeyStore } from '@veramo/key-manager';
 import { DIDManager, MemoryDIDStore } from '@veramo/did-manager';
 import { CredentialPlugin } from '@veramo/credential-w3c';
 import { DIDResolverPlugin } from '@veramo/did-resolver';
@@ -10,8 +10,6 @@ import { Web3KeyManagementSystem } from '@veramo/kms-web3';
 import { CredentialIssuerEIP712 } from '@veramo/credential-eip712';
 import { getResolver } from 'ethr-did-resolver';
 import { Resolver } from 'did-resolver';
-//import { KeyDIDProvider, getDidKeyResolver } from '@veramo/did-provider-key';
-//import { KeyManagementSystem } from '@veramo/kms-local';
 
 // Infura Project ID - to get information from the Ethereum Sepolia blockchain
 const infuraProjectId = '6568670383cf484cb817256f0eea66b5'

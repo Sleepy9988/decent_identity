@@ -4,7 +4,8 @@ import { getContexts } from '../helper';
 import FormDialog from './RequestFormDialog';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
-import { postRequest } from "../helper";
+//import { postRequest } from "../helper";
+import { postRequest } from "../../utils/apiHelper";
 import { useAgent } from '../../services/AgentContext';
 import SnackbarAlert from "../Misc/Snackbar";
 
@@ -18,7 +19,8 @@ export default function RequestForm({ created_reqs, onNewRequest }) {
 
     const { agent, did } = useAgent();
 
-    const created_req_list = created_reqs.map(x => x.context_id);
+    const pending_reqs = created_reqs.filter((x) => x.status === 'Pending');
+    const created_req_list = pending_reqs.map(x => x.context_id);
 
     const handleClick = async (e) => {
         e.preventDefault();

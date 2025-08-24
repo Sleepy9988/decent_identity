@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { checkDidOnChain } from '../components/helper.js';
+//import { checkDidOnChain } from '../components/helper.js';
+import { checkDidOnChain } from '../utils/ethHelper.js';
 import { useAgent } from '../services/AgentContext';
 import { ethers } from "ethers";
-import { Box, Container, Typography, Card, CardContent, Divider, 
-            ButtonGroup, Dialog, DialogContent, Checkbox, FormControlLabel, 
-            TableContainer, Table, TableRow, Paper, TableCell, TableBody
+import { Box, Container, Typography, Card, CardContent, Divider, ButtonGroup, Dialog, 
+            DialogContent, Checkbox, TableContainer, Table, TableRow, Paper, TableCell, TableBody
         } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IconButton from '@mui/material/IconButton';

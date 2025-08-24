@@ -6,7 +6,8 @@ import DownloadIcon from '@mui/icons-material/Download';
 import IdentityCard from "./IdentityCard";
 import AlertDialog from "../Misc/AlertDialog";
 import { useAgent } from '../../services/AgentContext';
-import { deleteIdentities } from "../helper";
+//import { deleteIdentities } from "../helper";
+import { deleteIdentities } from "../../utils/apiHelper";
 import { handleDownload } from "../../utils/download";
 
 export default function CardList({ identities }) {

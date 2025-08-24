@@ -3,7 +3,8 @@ import { Box, Fab, Card, Typography, CardContent, Divider, Tooltip, CardHeader }
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import { deleteIdentities, updateIdentity } from '../helper';
+//import { deleteIdentities, updateIdentity } from '../helper';
+import { deleteIdentities, updateIdentity } from "../../utils/apiHelper";
 import { useLocation } from "react-router-dom";
 import AlertDialog from '../Misc/AlertDialog';
 

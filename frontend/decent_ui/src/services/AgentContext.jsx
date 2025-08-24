@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { isTokenExpired } from '../utils/tokenExpiration.js';
-import { refreshAccessToken } from '../utils/refreshToken.js';
+import { isTokenExpired } from '../utils/tokenExpiration';
+import { refreshAccessToken } from '../utils/refreshToken';
 import { useWeb3AuthDisconnect } from "@web3auth/modal/react";
-import { logoutUser } from '../utils/logoutUser.js';
-import { getIdentities } from '../components/helper.js';
+import { logoutUser } from '../utils/logoutUser';
+//import { getIdentities } from '../components/helper.js';
+import { getIdentities } from '../utils/apiHelper';
 
 const AgentContext = createContext();
 

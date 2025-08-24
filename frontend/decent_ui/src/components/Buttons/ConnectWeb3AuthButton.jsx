@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { useWeb3AuthConnect } from "@web3auth/modal/react";
 import { handleWeb3AuthLogin } from "../../utils/web3Login";
 import { useAgent } from '../../services/AgentContext';
-import { getIdentities } from '../helper';
-import Button from '@mui/material/Button';
+//import { getIdentities } from '../helper';
+import { getIdentities } from "../../utils/apiHelper";
+import { Button, Typography} from '@mui/material';
 import LoginIcon from '@mui/icons-material/Login';
 import { useNavigate } from "react-router-dom";
 

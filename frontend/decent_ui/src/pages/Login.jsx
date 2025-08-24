@@ -12,7 +12,6 @@ const Login = () => {
     const { isAuthenticated } = useAgent();
     
     const loggedIn = isConnected && isAuthenticated;
-
     useEffect(() => {
         if (loggedIn) {
             navigate('/dashboard');
