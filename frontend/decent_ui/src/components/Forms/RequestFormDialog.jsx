@@ -2,6 +2,16 @@ import React, { useState } from "react";
 import { TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button} from "@mui/material";
 import BadgeIcon from '@mui/icons-material/Badge';
 
+/**
+ * FormDialog
+ * 
+ * Simple dialog to capute the purpose of an access request.
+ * - Opens when user clicks "Request" button.
+ * - Displays a text field for purpose (mandatory).
+ * - On submit, calls onSubmitRequest then closes
+ * - Shows disabled "Pending" button if request already exists. 
+ */
+
 export default function FormDialog({ requested_already, onSubmitRequest }) {
     const [open, setOpen] = useState(false);
 
@@ -13,6 +23,7 @@ export default function FormDialog({ requested_already, onSubmitRequest }) {
         setOpen(false);
     }
 
+    // Handle form submission: grab purpose from form, call parent.
     const handleSubmit = (e) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
@@ -26,9 +37,13 @@ export default function FormDialog({ requested_already, onSubmitRequest }) {
     return (
         <React.Fragment>
             {requested_already ? (
-                <Button aria-label="request" variant="outlined" disabled={requested_already} endIcon={<BadgeIcon />} onClick={handleClickOpen}>Pending</Button>
+                <Button aria-label="request" variant="outlined" disabled={requested_already} endIcon={<BadgeIcon />} onClick={handleClickOpen}>
+                    Pending
+                </Button>
             ) : (
-                <Button aria-label="request" variant="outlined" disabled={requested_already} endIcon={<BadgeIcon />} onClick={handleClickOpen}>Request</Button>
+                <Button aria-label="request" variant="outlined" disabled={requested_already} endIcon={<BadgeIcon />} onClick={handleClickOpen}>
+                    Request
+                </Button>
             )}
             <Dialog open={open} onClose={handleClose}>
                 <DialogTitle>Request Access</DialogTitle>

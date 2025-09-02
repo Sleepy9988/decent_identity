@@ -3,6 +3,17 @@ import Carousel from 'react-material-ui-carousel';
 import { Box, Typography } from '@mui/material';
 import IdentityCard from '../Cards/IdentityCard';
 
+/**
+ * CardCarousel
+ * 
+ * Renders a carousel of IdentityCard components
+ * - Uses react-material-ui-carousel for sliding navigation.
+ * - Shows navigation buttons & indicators, disables autoPlay.
+ * 
+ * Props:
+ * - identities: array of identity objects 
+ */
+
 export default function CardCarousel({ identities }) {
     if (!Array.isArray(identities) || identities.length === 0) 
         return <Typography> You don't have any identities yet.</Typography>;

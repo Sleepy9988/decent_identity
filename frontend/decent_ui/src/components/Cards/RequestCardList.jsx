@@ -1,16 +1,44 @@
 import React, { useCallback, useState } from "react";
-import { Box, Typography, Card, CardContent, CardHeader, CardActions, Button, Dialog, 
-            DialogContent, DialogContentText, DialogActions, DialogTitle, TextField } from "@mui/material";
+import { 
+    Box, 
+    Typography, 
+    Card, 
+    CardContent, 
+    CardHeader, 
+    CardActions, 
+    Button, 
+    Dialog, 
+    DialogContent, 
+    DialogContentText, 
+    DialogActions, 
+    DialogTitle, 
+    TextField, 
+    Chip 
+} from "@mui/material";
 import PendingIcon from '@mui/icons-material/Pending';
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
-//import { updateRequest, deleteRequest, accessApprovedData } from "../helper";
-import { updateRequest, deleteRequest, accessApprovedData } from "../../utils/apiHelper";
+import { updateRequest, deleteRequest, accessApprovedData, revokeAccessApprovedData } from "../../utils/apiHelper";
 import AlertDialog from "../Misc/AlertDialog";
 import DatePickerComponent from "../Misc/DatePicker";
 import dayjs from "dayjs";
-
+import SnackbarAlert from "../Misc/Snackbar";
 import { useAgent } from '../../services/AgentContext';
+
+/**
+ * RequestCardList
+ * 
+ * Shows a list of access requests with actions depending on role / permission.
+ * - Pending requests: approvers can approve (with expiry date) or decline (with reason);
+ *   requestors can cancel their own request.
+ * - Approved requests: requestors can access data while not expired; approvers can revoke.
+ * - Declined / Expired requests are displayed with status only.
+ * 
+ * Props:
+ * - requests: Array of request objects 
+ * - canDecide: Boolean flag indicating if the user can approve/decline 
+ * - onUpdate: Callback to refresh data after any change
+ */
 
 export default function RequestCardList({ requests, canDecide, onUpdate }) {
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -20,10 +48,13 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
     const [reqToDecline, setReqToDecline] = useState(null);
     const [selectedDate, setSelectedDate] = useState(dayjs().add(1, 'day'));
     const [reqToApprove, setReqToApprove] = useState(null);
-
+    const [openSnack, setOpenSnack] = useState(false);
+    const [messageSnack, setMessageSnack] = useState('');
+    const [alertTypeSnack, setAlertTypeSnack] = useState('success');
+    
     const { signature } = useAgent();
-    //const signature = localStorage.getItem('signature');
 
+    // Visual status icon for each request state.
     const getStatusIcon = (status) => {
         switch(status) {
             case "Pending": return <PendingIcon color="primary" />;
@@ -33,6 +64,7 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
         }
     }
 
+    // Open the appropriate dialog depending on action type.
     const handleClickOpen = (type, req_id) => {
         if (type === 'dc') {
             setReqToDecline(req_id);
@@ -44,11 +76,15 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
         }
     };
 
+    // Approve dialog submit: approve with expiry date.
     const handleApproveSubmit = async () => {
         if (!reqToApprove || !selectedDate) return;
 
         try {
             await handleRequestUpdate(reqToApprove, 'approve', null, selectedDate);
+            setOpenSnack(true);
+            setMessageSnack('Request approved.');
+            setAlertTypeSnack('success');
         } finally {
             handleClose('ap');
             setSelectedDate(null);
@@ -56,6 +92,7 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
         }
     };
 
+    // Close dialogs and reset temp state. 
     const handleClose = (type) => {
         setReqToDecline(null);
         if (type === 'ap') {
@@ -69,16 +106,29 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
         }
     };
 
+    //Decline form submit handler (captures reason text field).
     const handleSubmit = async (event) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const formJson = Object.fromEntries(formData.entries());
         const reason = formJson.reason;
         if (!reqToDecline) return;
-        await handleRequestUpdate(reqToDecline, 'decline', reason)
-        handleClose();
+        try{
+            await handleRequestUpdate(reqToDecline, 'decline', reason)
+            setOpenSnack(true);
+            setMessageSnack('Request declined.');
+            setAlertTypeSnack('success');
+        } catch (err) {
+            console.error(err);
+            setOpenSnack(true);
+            setMessageSnack('Request could not be declined.');
+            setAlertTypeSnack('error');
+        } finally {
+            handleClose('dc');
+        }
     };
 
+    // Requestor cancels their own pending request.
     const handleCancelClick = useCallback((req_id) => {
         setReqToDelete(req_id);
         setDialogOpen(true);
@@ -90,8 +140,14 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
         try {
             await deleteRequest({request_id: reqToDelete});
             onUpdate();
+            setOpenSnack(true);
+            setMessageSnack('Request deleted.');
+            setAlertTypeSnack('success');
         } catch (err) {
             console.error("Deletion failed:", err);
+            setOpenSnack(true);
+            setMessageSnack('Request could not be deleted.');
+            setAlertTypeSnack('error');
         } finally {
             setDialogOpen(false);
             setReqToDelete(null);
@@ -103,6 +159,7 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
         setReqToDelete(null);
     },[]);
 
+    // Generic update function covering approve/decline with optional reason/expiry.
     const handleRequestUpdate = async (req_id, act, reason, expires_at) => {
         const updates = {
             action: act,
@@ -117,7 +174,7 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
         onUpdate();
     };
 
-
+    // Requestor: access approved (encrypted) data using signature. 
     const handleAccessApprovedData = async (reqId) => {
         try {
             if (!signature) {
@@ -143,9 +200,14 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                         title={<Typography variant='h6' gutterBottom sx={{ textAlign: 'start'}}><b>Requested Context:</b> {r.context}</Typography>}
                         subheader={<Typography sx={{ color: 'text.secondary', textAlign: 'start' }}>Requestor: {r.requestor_did}</Typography>}
                         action={
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
                                 {getStatusIcon(r.status)}
-                                <Typography sx={{ ml: 1, textTransform: 'capitalize', fontWeight: 'bold' }}>{r.status}</Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                    <Typography sx={{ ml: 1, textTransform: 'capitalize', fontWeight: 'bold' }}>{r.status}</Typography>
+                                    <Typography variant="subtitle2" sx={{ color: '#aaa', fontSize: 'small' }}>
+                                        {r.approved_at? new Date(r.approved_at).toLocaleString() : '-'}
+                                    </Typography>
+                                </Box>
                             </Box>
                         }
                     />
@@ -158,7 +220,9 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                             </Typography>
                         </Box>
                     </CardContent>
-                    
+                    <SnackbarAlert msg={messageSnack} open={openSnack} setOpen={setOpenSnack} type={alertTypeSnack} />
+
+                    {/* Pending state actions */}
                     {r.status === 'Pending' && (
                         <CardActions>
                             {canDecide ? (
@@ -168,6 +232,7 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                                     >
                                         Approve
                                     </Button>
+                                    {/* Approve dialog with expiry date */}
                                     <Dialog open={openAp} onClose={() => handleClose('ap')}>
                                         <DialogTitle>Expiry Date</DialogTitle>
                                         <DialogContent>
@@ -186,6 +251,7 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                                     >
                                         Decline
                                     </Button>
+                                    {/* Decline dialog with reason */}
                                     <Dialog open={open} onClose={() => handleClose('dc')}>
                                         <DialogTitle>Decline Request</DialogTitle>
                                         <DialogContent>
@@ -218,26 +284,32 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                             )}
                         </CardActions>
                     )}
+
+                    {/* Approved state actions */}
                     {r.status === 'Approved' && (
                         <>
                         <CardActions>
-                            {(!canDecide && r.expires_at && new Date(r.expires_at) > new Date()) ?(
-                                <Button variant="outlined" size="medium" color="warning" onClick={() => handleAccessApprovedData(r.id)}>Access Data</Button>
-                            ) : ( 
-                            <Button variant="outlined" size="medium" color="warning" disabled>
-                                Expired
-                            </Button>
-                            
-                           )}
+                            {r.expires_at && new Date(r.expires_at) > new Date() ? (
+                                !canDecide ? (
+                                    <Button variant="outlined" size="medium" color="warning" onClick={() => handleAccessApprovedData(r.id)}>Access Data</Button>
+                                ) : (
+                                    <Button variant="outlined" size="medium" color="warning" onClick={() => revokeAccessApprovedData(r.id)}>Revoke</Button>
+                                )
+                            ) : (
+                                <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%'}}>
+                                    
+                                    <Chip label="EXPIRED" variant="outlined" sx={{}} />
+                                </Box>
+                            )}
                         </CardActions>
                         <Typography sx={{ textAlign: 'start', color: '#aaa', fontSize: 'small', ml: 1}}>
                             Expires: {r.expires_at? new Date(r.created_at).toLocaleString() : '-'}
                         </Typography>
                         </>
                     )}
-                    
                 </Card>
             ))}
+            {/* Cancel confirmation dialog */}
             <AlertDialog
                 open={dialogOpen}
                 title="Confirm Cancellation"

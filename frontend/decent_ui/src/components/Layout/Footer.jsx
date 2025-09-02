@@ -1,6 +1,14 @@
 import React from 'react';
 import { Box, Typography, Link } from '@mui/material';
 
+/**
+ * Footer 
+ * 
+ * Simple footer component.
+ * - Displays copyright with dynamic current year.
+ * - Provides links to Veramo and Web3Auth sites 
+ */
+
 export default function Footer() {
   return (
     <Box

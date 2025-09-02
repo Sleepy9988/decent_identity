@@ -5,8 +5,20 @@ from channels.layers import get_channel_layer
 logger = logging.getLogger('rest_api')
 
 def verify_with_veramo(endpoint, json_data):
+    """
+    Helper to call a Veramo backend service (running at :3003).
+    Posts JSON payloads to the specified endpoint and returns the response.
 
-    # URL of the Veramo backend agent 
+    Args:
+        endpoint (str): API endpoint path (e.g., 'verify-presentation').
+        json_data (dict): JSON body to send in the request.
+
+    Returns:
+        dict: Parsed JSON response from Veramo backend.
+
+    Raises:
+        HTTPError / RequestException if the request fails.
+    """
     veramo_service_url = f'http://localhost:3003/{endpoint}'
 
     try: 
@@ -22,6 +34,15 @@ def verify_with_veramo(endpoint, json_data):
     
 
 def notify_did(did, payload):
+    """
+    Sends a real-time notification to all WebSocket clients subscribed to a DID group.
+
+    Uses Django Channels' channel layer to send messages.
+
+    Args:
+        did (str): The DID to notify (used to build group name).
+        payload (dict): The message payload to send to the WebSocket group.
+    """
     channel_layer = get_channel_layer()
     if channel_layer is None:
         return

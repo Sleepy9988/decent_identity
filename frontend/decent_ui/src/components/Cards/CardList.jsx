@@ -3,29 +3,41 @@ import { Box, Typography, Checkbox, FormControlLabel, Button, ButtonGroup } from
 import DeleteIcon from '@mui/icons-material/Delete';
 import ShareIcon from '@mui/icons-material/Share';
 import DownloadIcon from '@mui/icons-material/Download';
-import IdentityCard from "./IdentityCard";
+import IdentityCard from './IdentityCard';
 import AlertDialog from "../Misc/AlertDialog";
 import { useAgent } from '../../services/AgentContext';
-//import { deleteIdentities } from "../helper";
 import { deleteIdentities } from "../../utils/apiHelper";
 import { handleDownload } from "../../utils/download";
+
+/**
+ * CardList
+ * 
+ * Displays identity cards with mass actions (select, download, delete).
+ * 
+ * - Individual and "Select All" checkboxes.
+ * - Mass delete with confirmation dialog.
+ * - Mass download of selected identities.
+ * - Keeps context in sync after updates or deletions.
+ * 
+ */
 
 export default function CardList({ identities }) {
     const { setIdentity} = useAgent();
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selected, setSelected] = useState(() => new Set());
 
+    // Update active status (visibility) of a specific identity in context.
     const handleIdentityUpdated = (id, newIsActive) => {
-        setIdentity(prev => 
-            prev.map(identity => identity.id === id ? { ...identity, is_active: newIsActive } : identity)
-        );
+        setIdentity(prev => prev.map(identity => identity.id === id ? { ...identity, is_active: newIsActive } : identity));
     };
 
+    // Trigger mass delete confirmation.
     const handleMassDelete = useCallback(async () => {
         if (selected.size === 0) return;
         setDialogOpen(true);
     }, [selected]);
 
+    // Confirm mass deletion: call API, update context, reset selection.
     const handleDialogConfirm = useCallback(async () => {
         setDialogOpen(false);
         const idsDelete = [...selected];
@@ -43,6 +55,7 @@ export default function CardList({ identities }) {
         setDialogOpen(false)
     }, []);
 
+    // Reset the selection whenever the identities list changes. 
     useEffect(() => {
         setSelected(new Set());
     }, [identities]);
@@ -53,6 +66,7 @@ export default function CardList({ identities }) {
     const allSelected = numSelected === total && total > 0;
     const someSelected = numSelected > 0 && numSelected < total;   
 
+    // Select/unselect all identities.
     const toggleSelectAll = useCallback((e) => {
         if (e.target.checked) {
             setSelected(new Set(allIds));
@@ -61,6 +75,7 @@ export default function CardList({ identities }) {
         }
     }, [allIds]);
 
+    // Toggle selection of single identity.
     const toggleOne = useCallback((id) => (e) => {
         setSelected(prev => {
             const next = new Set(prev);
@@ -70,6 +85,7 @@ export default function CardList({ identities }) {
         })
     }, []);
 
+    // Remove one identity after deletion from child card. 
     const handleDeleted = useCallback((deletedId) => {
         setIdentity(prev => prev.filter(i => i.id != deletedId));
         setSelected(prev => {
@@ -85,7 +101,7 @@ export default function CardList({ identities }) {
 
     return (
         <Box>
-            <Typography sx={{mt: 2, textAlign: 'start' }}>Identity count: {total}</Typography>
+            {/* Toolbar with select-all and bulk actions */}
             <Box sx={{display: 'flex', flexDirection: 'row', justifyContent:'start', mt: 2, maxWidth: '1100px'}}>
                 <Box>
                     <FormControlLabel
@@ -112,6 +128,8 @@ export default function CardList({ identities }) {
                     onClose={handleDialogCancel}
                 />
             </Box>
+            
+            {/* List of identities with checkboxes */}
             <Box sx={{ mt: 5, mb: 5, maxWidth: '1000px', display: 'flex', flexDirection: 'column', gap: 3}}>
             {identities.map((identity) => {
                 const checked = selected.has(identity.id);

@@ -74,22 +74,8 @@ class VeramoAgentWrapper {
         })
         
         // Import the public key from Web3 wallet
-        await this.agent.keyManagerImport({
-            kid: `web3-${address}`,
-            type: 'Secp256k1',
-            kms: 'web3',
-            publicKeyHex: this.publicKeyHex,
-            meta: {
-                algorithms: ['eth_signMessage', 'eth_signTypedData', 'EthereumEip712Signature2021'],
-            },
-        });
-        
-        // Import DID to reference it with the key
-        await this.agent.didManagerImport({
-            did: this.did,
-            provider: didProviderKey,
-            controllerKeyId: keyId,
-            keys: [{
+        if (this.publicKeyHex) {
+            await this.agent.keyManagerImport({
                 kid: `web3-${address}`,
                 type: 'Secp256k1',
                 kms: 'web3',
@@ -97,8 +83,24 @@ class VeramoAgentWrapper {
                 meta: {
                     algorithms: ['eth_signMessage', 'eth_signTypedData', 'EthereumEip712Signature2021'],
                 },
-            }],
-        });
+            });
+            
+            // Import DID to reference it with the key
+            await this.agent.didManagerImport({
+                did: this.did,
+                provider: didProviderKey,
+                controllerKeyId: keyId,
+                keys: [{
+                    kid: `web3-${address}`,
+                    type: 'Secp256k1',
+                    kms: 'web3',
+                    publicKeyHex: this.publicKeyHex,
+                    meta: {
+                        algorithms: ['eth_signMessage', 'eth_signTypedData', 'EthereumEip712Signature2021'],
+                    },
+                }],
+            });
+        }
         // Return the agent instance
         return this; 
     }

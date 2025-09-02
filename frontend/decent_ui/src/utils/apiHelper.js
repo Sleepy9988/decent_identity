@@ -1,12 +1,11 @@
 import { apiRequest } from "./apiClient";
 
-
 // ----- AUTHENTICATION -----
 
 export async function checkDIDProfile({ agent, did }) {
     // Request and extract challenge (nonce) from the backend (to prevent replay attacks)
     
-    const { challenge } = await apiRequest('/api/authentication/challenge', { method: 'GET'});
+    const { challenge } = await apiRequest('/api/auth/challenge/', { method: 'GET'});
 
     const rawPresentation = {
         holder: did,
@@ -23,7 +22,7 @@ export async function checkDIDProfile({ agent, did }) {
     });
 
     // Send VP and challenge to the backend for verification and authentication
-    const result = await apiRequest('/api/authenticate', { 
+    const result = await apiRequest('/api/auth/authenticate/', { 
         method: 'POST', 
         body: { presentation, challenge }
     });
@@ -42,7 +41,7 @@ export async function checkDIDProfile({ agent, did }) {
 
 // ----- IDENTITIES -----
 
-export async function generateIdentityCredential({ agent, did, signature, payload}) {
+export async function generateIdentityCredential({ agent, did, signature, payload, avatarFile }) {
     const { context, description, subject = {} } = payload || {};
 
     const issuanceDate = new Date().toISOString();
@@ -65,9 +64,14 @@ export async function generateIdentityCredential({ agent, did, signature, payloa
         proofFormat: 'EthereumEip712Signature2021',
     });
 
-    await apiRequest('/api/credential/verify', { 
+    const formData = new FormData();
+    formData.append('credential', JSON.stringify(vc_identity));
+    formData.append('signature', signature);
+    if (avatarFile) formData.append('avatar', avatarFile, avatarFile.name);
+
+    await apiRequest('/api/credentials/verify/', { 
         method: 'POST',
-        body: { credential: vc_identity, signature}
+        body: formData
     });
 
     return vc_identity;
@@ -84,7 +88,7 @@ export async function getIdentities(signature) {
 
 export async function deleteIdentities(ids) {
     if (!Array.isArray(ids) || ids.length === 0) throw new Error('No identity provided.');
-    return apiRequest('/api/identity/delete/', {
+    return apiRequest('/api/me/identities/mass-delete/', {
         method: 'POST',
         body: { ids },
     });
@@ -92,7 +96,7 @@ export async function deleteIdentities(ids) {
 
 
 export async function updateIdentity(identity_id, is_active) {
-    return apiRequest(`/api/me/identity/${encodeURIComponent(identity_id)}/active/`, {
+    return apiRequest(`/api/me/identities/${encodeURIComponent(identity_id)}/active/`, {
         method: 'PUT',
         body: { is_active },
     });
@@ -113,7 +117,7 @@ export async function getContexts(did) {
 // ----- REQUESTS -----
 
 export async function postRequest({did, agent, holderDid, contextId, purpose}) {
-    const { challenge } = await apiRequest('/api/requests/challenge', { method: 'GET' });
+    const { challenge } = await apiRequest('/api/requests/challenge/', { method: 'GET' });
     const issuanceDate = new Date().toISOString();
     const signature = localStorage.getItem('signature') || undefined;
 
@@ -147,7 +151,7 @@ export async function postRequest({did, agent, holderDid, contextId, purpose}) {
         proofFormat: 'EthereumEip712Signature2021',
     });
 
-    return apiRequest('/api/request/create', {
+    return apiRequest('/api/requests/', {
         method: 'POST',
         body: { presentation, challenge },
     });
@@ -160,7 +164,7 @@ export async function getRequests() {
 
 
 export async function updateRequest({ request_id, updates }) {
-    return apiRequest(`/api/requests/update/${encodeURIComponent(request_id)}/`, {
+    return apiRequest(`/api/requests/${encodeURIComponent(request_id)}/`, {
         method: 'PATCH',
         body: updates,
     });
@@ -168,18 +172,26 @@ export async function updateRequest({ request_id, updates }) {
     
 
 export async function deleteRequest({ request_id }) {
-    await apiRequest(`/api/me/request/delete/${encodeURIComponent(request_id)}/`, {
+    await apiRequest(`/api/me/requests/${encodeURIComponent(request_id)}/`, {
         method: 'DELETE',
     });
-    return { success: true};
+    return { success: true };
 }
 
 
 // ----- APPROVED REQUESTS -----
 
 export async function accessApprovedData({ request_id, signature }) {
-    return apiRequest(`/api/shared-data/${encodeURIComponent(request_id)}/`, {
+    return apiRequest(`/api/requests/${encodeURIComponent(request_id)}/shared-data/`, {
         method: 'POST',
         body: { signature },
     });
+}
+
+
+export async function revokeAccessApprovedData({ request_id }) {
+    await apiRequest(`/api/shared-data/${encodeURIComponent(request_id)}/`, {
+        method: 'DELETE',
+    });
+    return { success: true }
 }

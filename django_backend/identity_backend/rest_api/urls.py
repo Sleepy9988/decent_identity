@@ -2,7 +2,6 @@ from django.urls import path
 from .api import (
     UserAuthenticationView, 
     LoginChallengeView, 
-    DIDExistsView, 
     CreateCredentialView,
     GetMyIdentitiesView,
     IdentityDeleteView,
@@ -13,22 +12,23 @@ from .api import (
     UpdateRequestView,
     DeleteRequestView,
     UpdateIdentityActiveView,
-    RetrieveSharedDataView
+    RetrieveSharedDataView,
+    DeleteSharedDataView
 )
 
 urlpatterns = [
-      path('authenticate', UserAuthenticationView.as_view(), name='user_authentication'),
-      path('authentication/challenge', LoginChallengeView.as_view(), name='authentication_challenge'),
-      path('did/<str:did>/exists', DIDExistsView.as_view(), name='check_did_exists'),
-      path('credential/verify', CreateCredentialView.as_view(), name='verify_credential'),
-      path('me/identities/', GetMyIdentitiesView.as_view(), name='get_identities'),
-      path('me/identity/<uuid:identity_id>/active/', UpdateIdentityActiveView.as_view(), name="set_identity_visibility"),
-      path('identity/delete/', IdentityDeleteView.as_view(), name='delete_identities'),
-      path('users/<str:did>/contexts/', GetContexts.as_view(), name='user_contexts'),
-      path('requests/challenge', RequestChallengeView.as_view(), name='get_request_challenge'),
-      path('request/create', CreateRequestView.as_view(), name='create_request'),
-      path('me/requests/', GetRequests.as_view(), name='get_requests'),
-      path('requests/update/<uuid:request_id>/', UpdateRequestView.as_view(), name='update_requests'),
-      path('me/request/delete/<uuid:request_id>/', DeleteRequestView.as_view(), name='delete_request'),
-      path('shared-data/<uuid:request_id>/', RetrieveSharedDataView.as_view(), name='grant_data_access'),
+    path('auth/authenticate/', UserAuthenticationView.as_view(), name='auth_authenticate'),
+    path('auth/challenge/', LoginChallengeView.as_view(), name='auth_challenge'),
+    path('credentials/verify/', CreateCredentialView.as_view(), name='verify_credentials'),
+    path('me/identities/', GetMyIdentitiesView.as_view(), name='get_identities'),
+    path('me/identities/<uuid:identity_id>/active/', UpdateIdentityActiveView.as_view(), name="set_identity_visibility"),
+    path('me/identities/mass-delete/', IdentityDeleteView.as_view(), name='mass_delete_identities'),
+    path('users/<path:did>/contexts/', GetContexts.as_view(), name='user_contexts'),
+    path('requests/challenge/', RequestChallengeView.as_view(), name='get_request_challenge'),
+    path('requests/', CreateRequestView.as_view(), name='create_request'),
+    path('me/requests/', GetRequests.as_view(), name='get_requests'),
+    path('requests/<uuid:request_id>/', UpdateRequestView.as_view(), name='update_requests'),
+    path('me/requests/<uuid:request_id>/', DeleteRequestView.as_view(), name='delete_request'),
+    path('requests/<uuid:request_id>/shared-data/', RetrieveSharedDataView.as_view(), name='grant_data_access'),
+    path('shared-data/<uuid:request_id>/', DeleteSharedDataView.as_view(), name='shared_data_delete'),
 ]

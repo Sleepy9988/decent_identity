@@ -1,22 +1,29 @@
 import * as React from 'react';
-
-import { Box, Typography, Drawer, Toolbar, List, Divider, 
-          ListItem, ListItemButton, ListItemIcon, ListItemText} from "@mui/material";
-
+import { Box, Typography, Drawer, Toolbar, List, Divider, ListItem, ListItemButton, ListItemIcon, ListItemText} from "@mui/material";
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PermIdentityIcon from '@mui/icons-material/PermIdentity';
 import InboxIcon from '@mui/icons-material/Inbox';
-
 import { NavLink } from 'react-router-dom';
 import { useWeb3AuthConnect } from "@web3auth/modal/react";
 
 const drawerWidth = 320;
 
+// Sidebar menu definition (text, icon, path)
 const menuItems = [
   {text: 'Dashboard', icon: <DashboardIcon fontSize="large"/>, path: '/dashboard'},
   {text: 'Identities', icon: <PermIdentityIcon fontSize="large" />, path: '/identities' },
   {text: 'Requests', icon: <InboxIcon fontSize="large" />, path: '/requests'},
 ];
+
+
+/**
+ * SidebarLeft 
+ * 
+ * Persistent left-hand navigation drawer
+ * - Displays app navigation links with active state highlighting 
+ * - Shows connection info (connector name) at the bottom
+ * - MUI Drawer with fixed width
+ */
 
 export default function SidebarLeft() {
   const { connectorName } = useWeb3AuthConnect();
@@ -41,6 +48,7 @@ export default function SidebarLeft() {
           height: '100%',
           pt: 10
         }}>
+        {/* Navigation links */}
         <Typography variant="h5" align='center' gutterBottom>
           Navigation
         </Typography>
@@ -68,8 +76,12 @@ export default function SidebarLeft() {
             </ListItem>
           ))}
         </List>
+
+        {/* Push footer to bottom */}
         <Box sx={{ flexGrow: 1 }} />
         <Divider />
+
+        {/* Connection info */}
         <List>
           <ListItem key="connector">
             <ListItemIcon>

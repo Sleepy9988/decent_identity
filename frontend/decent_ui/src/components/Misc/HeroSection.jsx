@@ -2,6 +2,16 @@ import React from "react";
 import { Box, Container, Typography } from '@mui/material';
 import { ConnectWeb3AuthButton } from '../Buttons';
 
+/**
+ * HeroSection 
+ * 
+ * Landing page hero banner.
+ * - Full viewport width, 75% viewport height
+ * - Background: hero image with gradient overlay
+ * - Adds angled polygon accent on the left via clipPath
+ * - Displays title, subtitle, and a login button.
+ */
+
 export default function HeroSection() {
     return (
         <Box 
@@ -22,6 +32,7 @@ export default function HeroSection() {
                 textShadow: '1px 1px 6px rgba(0, 0, 0, 0.7)',           
             }}
         >
+            {/* Left-side angled overlay accent */}
             <Box 
                 sx={{
                     position: 'absolute',
@@ -34,6 +45,7 @@ export default function HeroSection() {
                     zIndex: 1,
                 }}
             />
+            {/* Foreground content */}
             <Container maxWidth="lg" sx={{ textAlign: 'initial', zIndex: 2 }}>
                 <Typography variant="h2" component="h1" gutterBottom>
                     Welcome to DIDHub 

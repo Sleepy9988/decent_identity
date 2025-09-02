@@ -7,11 +7,28 @@ import web3AuthContextConfig from "./web3authContext.jsx";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import App from './App.jsx'
-
 import { ThemeProvider, CssBaseline  } from '@mui/material';
 import theme from './theme';
 
+/**
+ * Application Entry Point 
+ * 
+ * Renders the React app into the #root DOM element
+ * Wraps the app with global providers: 
+ * 
+ * - Web3AuthProvider - configures Web3Auth (wallet connection)
+ * - LocalizationProvider - Provides date handling with Day.js
+ * - ThemeProvider - Applies custom MUI theme across the app 
+ * - CssBaseline - Resets/normalizes CSS for consistent styling
+ * - AgentProvider - Custom context for Veramo agent, DID, identity state. 
+ * 
+ * Inside these providers, the main App component handles routing & layout. 
+ * 
+ * Strictmode disabled since it interferes with the Carousel component. 
+ */
+
 createRoot(document.getElementById('root')).render(
+  // <StrictMode>
     <Web3AuthProvider config={web3AuthContextConfig}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <ThemeProvider theme={theme}>
@@ -22,5 +39,5 @@ createRoot(document.getElementById('root')).render(
         </ThemeProvider>
       </LocalizationProvider>
     </Web3AuthProvider>
-
+  // </StrictMode>
 );

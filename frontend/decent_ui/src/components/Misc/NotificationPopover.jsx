@@ -3,20 +3,24 @@ import { Popover, Typography, Badge, Box, List, ListItem, ListItemText, Divider,
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useAgent } from '../../services/AgentContext';
 
+/**
+ * NotificationPopover
+ * 
+ * Displays a bell icon with a badge count of notifications.
+ * Clicking opens a Popover listing all notifications.
+ * - Each notification shows event type, optinal context, and timestamp.
+ * - Provides a "Mark all as read" button that clears the notifications.
+ */
+
 export default function NotificationPopover() {
     const { notifications, clearNotifications } = useAgent();
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
 
-    const handlePopoverOpen = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handlePopoverClose = () => {
-        setAnchorEl(null);
-    };
-
+    const handlePopoverOpen = (event) => setAnchorEl(event.currentTarget);
+    const handlePopoverClose = () => setAnchorEl(null);
+    
     const handleMarkAllRead = () => { 
         clearNotifications(); 
         handlePopoverClose(); 
@@ -24,6 +28,7 @@ export default function NotificationPopover() {
 
     return (
         <Box>
+            {/* Bell icon with badge */}
             <Badge 
                 color='warning' 
                 sx={{mr: 10}} 
@@ -38,6 +43,8 @@ export default function NotificationPopover() {
                     
                 />
             </Badge>
+            
+            {/* Popover with notifications list */}
             <Popover
                 id="notif-popover"
                 open={open}
@@ -60,7 +67,6 @@ export default function NotificationPopover() {
                                     <ListItem disablePadding>
                                         <ListItemText 
                                             primary={notification.event.toUpperCase()}
-                                            secondaryTypographyProps={{ component: 'div' }} 
                                             secondary={
                                                  <React.Fragment>
                                                     {notification.context?.context && (

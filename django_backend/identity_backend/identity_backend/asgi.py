@@ -3,14 +3,15 @@ from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from django.core.asgi import get_asgi_application
-from .middleware import JWTAuthMiddleware
+
 
 # setting module of the application
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'identity_backend.settings')
 
-# Initialize Django then import WebSocket routes
+# Initialize Django first, before loading any app related content like WebSocket routes
 django.setup()
 from identity_backend.routing import websocket_urlpatterns
+from .middleware import JWTAuthMiddleware
 
 application = ProtocolTypeRouter({
     # HTTP requests

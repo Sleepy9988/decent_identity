@@ -9,12 +9,13 @@ import uuid, json, logging
 
 logger = logging.getLogger('rest_api')
 
-"""
+
+class Profile(models.Model):
+    """
     One-to-one relationship with Django Auth user
     Extends the Base model with Decentralized Identifier and timestamps for 
     auditing and activity tracking. 
-"""
-class Profile(models.Model):
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     did = models.CharField(max_length=255, unique=True, blank=True, null=True)
     creation_date = models.DateTimeField(auto_now_add=True)
@@ -24,11 +25,11 @@ class Profile(models.Model):
         return self.user.username
 
 
-"""
+class Identity(models.Model):
+    """
     Stores the encrypted identity information of users, along with retrievable
     context & description. 
-"""
-class Identity(models.Model):
+    """
     id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='identities')
     context = models.CharField(max_length=255, blank=False, null=False)
@@ -47,41 +48,43 @@ class Identity(models.Model):
         unique_together = ('user', 'context', 'description')
         verbose_name_plural = "Identities"
 
-    """
+    
+    def store_encrypted_data(self, raw_data, signature):
+        """
         Serialize and encrypt the provided data with a Fernet key derived from 
         Ethereum wallet signature and this instance's salt.
-    """
-    def store_encrypted_data(self, raw_data, signature):
+        """
         data_bytes = json.dumps(raw_data).encode()
         encrypted = encrypt(data_bytes, signature.encode(), self.salt)
         self.enc_data = encrypted
 
 
-    """
-        Decrypt the stored ciphertext with the holder's signature.
-    """
     def retrieve_decrypted_data(self, signature):
+        """
+        Decrypt the stored ciphertext with the holder's signature.
+        """
         try:
             decrypted = decrypt(self.enc_data, signature.encode(), self.salt)
             return json.loads(decrypted.decode())
         except Exception as e:
-            logger.debug(e)
+            logger.debug(f"decrypt failed: {e}")
             return None
         
 
-    """
-        Ensure salt is present at creation time.
-    """
     def save(self, *args, **kwargs):
+        """
+        Ensure salt is present at creation time.
+        """
         if not self.salt:
             raise ValueError("Salt must not be blank when saving an Identity.")
         super().save(*args, **kwargs)
     
 
-"""
-    Stores requests of a requestor to access a holder's identity information.
-"""
+
 class Request(models.Model): 
+    """
+    Stores requests of a requestor to access a holder's identity information.
+    """
     class Status(models.TextChoices): 
         PENDING = "PD", _("Pending") 
         APPROVED = "AP", _("Approved") 
@@ -99,9 +102,8 @@ class Request(models.Model):
     presentation = models.JSONField(blank=True, null=True) 
     approved_by = models.ForeignKey(Profile, null=True, blank=True, on_delete=models.SET_NULL, related_name='requests_approved') 
     approved_at = models.DateTimeField(null=True, blank=True) 
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True) 
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True, editable=False) 
     updated_at = models.DateTimeField(auto_now=True) 
-    #requestor_pubkey = models.JSONField(blank=True, null=True)
     requestor_signature = models.TextField(blank=True, null=True)
     
     class Meta: 
@@ -120,10 +122,11 @@ class Request(models.Model):
         # Most recent request first 
         ordering = ['-created_at'] 
     
-    """
-        Ensure the identity context belongs to the user specified in the request.
-    """
+    
     def clean(self): 
+        """
+        Ensure the identity context belongs to the user specified in the request.
+        """
         if self.context.user != self.holder: 
             raise ValidationError("Context does not belong to the holder.") 
         
@@ -131,11 +134,11 @@ class Request(models.Model):
         return f"{self.requestor.did} - {self.holder.did} [{self.context}] ({self.get_status_display()})" 
 
 
-"""
+class SharedData(models.Model):
+    """
     Stores the approved identity data ciphertext, encrypted with requestor key. 
     One-to-one relationship with the request model.
-"""
-class SharedData(models.Model):
+    """
     request = models.OneToOneField(Request, on_delete=models.CASCADE, related_name='shared_data')
     enc_data = models.BinaryField()
     encKey_wrapped = models.BinaryField()

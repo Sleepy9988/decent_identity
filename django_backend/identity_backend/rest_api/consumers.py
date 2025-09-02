@@ -7,20 +7,21 @@ import re, json, logging
 
 logger = logging.getLogger(__name__)
 
-"""
-Handle the incoming WebSocket connection.
-Steps:
-    1. Extract 'did' from the URL kwargs
-    2. Extract 'token' from the query string
-    3. Validate token & extract 'user_id'
-    4. Ensure DID in URL matches DID in user profile
-    5. Accept connection and add client to group
+
+class BackendConsumer(AsyncWebsocketConsumer):
+    """
+    Handle the incoming WebSocket connection.
+    Steps:
+        1. Extract 'did' from the URL kwargs
+        2. Extract 'token' from the query string
+        3. Validate token & extract 'user_id'
+        4. Ensure DID in URL matches DID in user profile
+        5. Accept connection and add client to group
 
     Documentation:
     https://django-rest-framework-simplejwt.readthedocs.io/en/latest/rest_framework_simplejwt.html
     https://channels.readthedocs.io/en/latest/index.html
-"""
-class BackendConsumer(AsyncWebsocketConsumer):
+    """
     async def connect(self):        
         from django.contrib.auth import get_user_model
         from .models import Profile 
@@ -95,16 +96,18 @@ class BackendConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
 
-    """
-    Handle WebSocket disconnection.
-    """
+
     async def disconnect(self, code):
+        """
+        Handle WebSocket disconnection.
+        """
         if hasattr(self, "group_name") and self.channel_layer:
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
-    """
-    Helper to call from other parts of the app to send notifications to the client.
-    """
+    
     async def notify(self, event):
+        """
+        Helper to call from other parts of the app to send notifications to the client.
+        """
         message = event.get('message', {})
         await self.send(text_data=json.dumps(message))

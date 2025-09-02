@@ -8,6 +8,16 @@ import { useWeb3AuthConnect } from "@web3auth/modal/react";
 import { Box, Toolbar, Container, CssBaseline } from "@mui/material";
 import { useLocation } from 'react-router-dom';
 
+/**
+ * Global page layout wrapper.
+ * - Provides persistent Header, Footer, and Sidebar (conditionally)
+ * - Handles responsive flexbox structure with main content area. 
+ * - Uses React Router useLocation to hide sidebar on login page ('/')
+ * 
+ * Props:
+ * - children: page-specific content rendered in the main area
+ */
+
 const Layout = ({ children }) => {
     const location = useLocation();
     const showSidebar = location.pathname !== '/'; 
@@ -31,6 +41,7 @@ const Layout = ({ children }) => {
                     flexGrow: 1,
                 }}
             >
+                {/* Offset for fixed Header */}
                 <Toolbar />
                 <Box sx={{ pt: 4}}>
                     {isLoginPage ? (

@@ -1,17 +1,17 @@
-import os 
-import base64
+import os, base64
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes 
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-"""
+
+def get_fernet_key(signature, salt):
+    """
     Derive Fernet key from Ethereum wallet signature + salt.
     Salt is unique per user-identity and stored in the DB. 
     PBKDF2 with SHA256 and 1.2M iterations is recommended to prevent brute-force attacks. 
     Documentation:
         https://cryptography.io/en/latest/
-"""
-def get_fernet_key(signature, salt):
+    """
     if isinstance(signature, str):
         signature = signature.encode()
         
@@ -26,20 +26,20 @@ def get_fernet_key(signature, salt):
     return Fernet(key)
 
 
-"""
+def encrypt(data, signature, salt):
+    """
     Encrypt data using Fernet key derived from Ethereum wallet signature + salt.
     Data input in bytes. 
     Returns the ciphertext. 
-"""
-def encrypt(data, signature, salt):
+    """
     f = get_fernet_key(signature, salt)
     return f.encrypt(data)
 
 
-"""
-    Decrypt the data encrypted with encrypt() function.
-"""
 def decrypt(data, signature, salt):
+    """
+    Decrypt the data encrypted with encrypt() function.
+    """
     f = get_fernet_key(signature, salt)
     return f.decrypt(data)
 
@@ -47,27 +47,28 @@ def decrypt(data, signature, salt):
 # --- Envelope Encryption ----
 # https://medium.com/@tarangchikhalia/envelope-encryption-a-secure-approach-to-secrets-management-c8abce5b24d2
 
-"""
-    Generate random 32-byte Data Encryption Key (DEK)
-"""
+
 def generate_encKey():
+    """
+    Generate random 32-byte Data Encryption Key (DEK)
+    """
     return os.urandom(32)
 
 
-""""
+def fernet_encKey(encKey):
+    """
     Convert raw encryption key into Fernet instance.
     Used to encrypt & decrypt data. 
-"""
-def fernet_encKey(encKey):
+    """
     key = base64.urlsafe_b64encode(encKey)
     return Fernet(key)
 
 
-"""
+def derive_kek_from_signature(signature, salt):
+    """
     Derive Key Encryption Key (KEK) from signature + salt.
     Encrypts the encryption key not data.
-"""
-def derive_kek_from_signature(signature, salt):
+    """
     if isinstance(signature, str):
         signature = signature.encode('utf-8')
 
@@ -80,20 +81,20 @@ def derive_kek_from_signature(signature, salt):
     return kdf.derive(signature)
 
 
-"""
-    Encrypt the DEK with the KEK
-"""
 def wrap_key_w_signature(enc_key, signature, salt):
+    """
+    Encrypt the DEK with the KEK
+    """
     kek = derive_kek_from_signature(signature, salt)
     kek_b64url = base64.urlsafe_b64encode(kek)
     f_kek = Fernet(kek_b64url)
     return f_kek.encrypt(enc_key)
 
 
-"""
-    Decrypt the DEK using the KEK
-"""
 def unwrap_key_w_signature(enc_key_wrapped, signature, salt):
+    """
+    Decrypt the DEK using the KEK
+    """
     kek = derive_kek_from_signature(signature, salt)
     kek_b64url = base64.urlsafe_b64encode(kek)
     f_kek = Fernet(kek_b64url)
