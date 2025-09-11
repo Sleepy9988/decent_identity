@@ -12,11 +12,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-
 import logging.config
 import os
 import dj_database_url
 from django.utils.log import DEFAULT_LOGGING
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 LOGGING_CONFIG = None
 
@@ -55,25 +57,64 @@ logging.config.dictConfig({
     }
 })
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-s4(!@)xl9idbgdx2*d^#k%uk47-p*=@1l$x^x=4yin$rjk_ki1'
-
-# SECURITY WARNING: don't run with debug turned on in production!
+# security & env
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
+# CORS / CSRF
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORGINS", "http://localhost:5173").split(",")
+
+# Database
+DATABASES = {
+    'default': dj_database_url.parse(
+        os.getenv("DATABASE_URL", "postgres://identity:identitypass@localhost:5432/identitydb"),
+          conn_max_age=600, 
+          ssl_require=False
+    )
+}
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.2/howto/static-files/
+
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# Django Channels / Redis
+REDIS_URL = os.getenv("REDIS_URL")
+
+if not DEBUG:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {"hosts": [REDIS_URL]},
+        }
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
+    }
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = None 
+    CSRF_COOKIE_SAMESITE = None
 
 # Application definition
-
 INSTALLED_APPS = [
     'channels',
     'rest_api',
@@ -107,8 +148,8 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny', # Dev setting
-        #'rest_framework.permissions.IsAuthenticated',
+        #'rest_framework.permissions.AllowAny', # Dev setting
+        'rest_framework.permissions.IsAuthenticated',
     ],
 }
 
@@ -131,26 +172,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'identity_backend.wsgi.application'
 ASGI_APPLICATION = 'identity_backend.asgi.application'
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-"""
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-"""
-
-DATABASES = {
-    'default': dj_database_url.parse(
-        os.getenv("DATABASE_URL", "postgres://identity:identitypass@localhost:5432/identitydb"),
-          conn_max_age=600, 
-          ssl_require=False
-    )
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -183,24 +204,10 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = 'static/'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
-CORS_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORGINS", "http://localhost:5173").split(",")
-
-CORS_ALLOW_CREDENTIALS = True
-SESSION_COOKIE_SAMESITE = None 
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SAMESITE = None
-CSRF_COOKIE_SECURE = False
 
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
 SIMPLE_JWT = {
@@ -208,14 +215,6 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True
-}
-
-CHANNEL_LAYERS = {
-    'default': {'BACKEND': 'channels.layers.InMemoryChannelLayer'}
-    #"default": {
-    #    "BACKEND": "channels_redis.core.RedisChannelLayer",
-    #    "CONFIG": {"hosts": [("redis", 6379)]},
-    #}
 }
 
 SWAGGER_SETTINGS = {
@@ -228,9 +227,6 @@ SWAGGER_SETTINGS = {
     },
     'USE_SESSION_AUTH': False,
 }
-
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
 
 GRAPH_MODELS = {
     'all_applications': True, 
