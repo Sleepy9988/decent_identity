@@ -15,6 +15,7 @@ from datetime import timedelta
 
 import logging.config
 import os
+import dj_database_url
 from django.utils.log import DEFAULT_LOGGING
 
 LOGGING_CONFIG = None
@@ -65,9 +66,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-s4(!@)xl9idbgdx2*d^#k%uk47-p*=@1l$x^x=4yin$rjk_ki1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 
 # Application definition
@@ -133,13 +135,22 @@ ASGI_APPLICATION = 'identity_backend.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+"""
 
+DATABASES = {
+    'default': dj_database_url.parse(
+        os.getenv("DATABASE_URL", "postgres://identity:identitypass@localhost:5432/identitydb"),
+          conn_max_age=600, 
+          ssl_require=False
+    )
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -182,20 +193,14 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173", 
-    "http://127.0.0.1:5173",
-]
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+CORS_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORGINS", "http://localhost:5173").split(",")
 
 CORS_ALLOW_CREDENTIALS = True
 SESSION_COOKIE_SAMESITE = None 
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SAMESITE = None
 CSRF_COOKIE_SECURE = False
-
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5173',
-]
 
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
 SIMPLE_JWT = {
