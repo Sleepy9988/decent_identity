@@ -4,7 +4,7 @@ import { useAgent } from '../../services/AgentContext';
 import { useWeb3Auth } from "@web3auth/modal/react";
 import Button from '@mui/material/Button';
 import CreateIcon from '@mui/icons-material/Create';
-import { buildVeramoFromWeb3Provider } from "../../utils/buildVeramoAgent";
+import { ensureAgentDid } from "../../utils/buildVeramoAgent";
 
 /**
  * SubmitVCButton
@@ -17,48 +17,38 @@ import { buildVeramoFromWeb3Provider } from "../../utils/buildVeramoAgent";
  */
 
 const SubmitVCButton = ({ payload, onSuccess, avatarFile, setAvatarFile, setOpen, setMessage, setAlertType }) => {
-    const { web3Auth } = useWeb3Auth();
-    const { agent, did, signature, setIdentity, setAgent,setDid } = useAgent();
-
-    const [pending, setPending] = useState(false);
-
-    // Ensure there is a valid agent & DID, rebuild from provider is necessary.
-    const ensureAgentDid = async () => {
-        if (agent && did) {
-            return { agent, did}
-        }
-        const provider = web3Auth.provider;
-        if (!provider) {
-            throw new Error('Wallet provider not connected. Please log in again.');
-        }
-
-        const storedPK = localStorage.getItem('publicKeyHex') || '';
-        const wrapper = await buildVeramoFromWeb3Provider(provider, storedPK);
-        
-        const rebuildAgent = wrapper.getAgent();
-        const rebuildDid = wrapper.getDID();
-        setAgent(rebuildAgent);
-        setDid(rebuildDid);
-
-        return { agent: rebuildAgent, did: rebuildDid };
-    };
+    const { provider } = useWeb3Auth();
+    const { agent, did, signature, setIdentity, setAgent, setDid } = useAgent();
+    const [pending, setPending] = useState(false); 
     
     // Create VC, refresh state and update UI.
     const handleClick = async () => {
         setPending(true);
         try {
-            const { agent: a, did: d } = await ensureAgentDid();
+            const { agent: liveAgent, did: liveDid } = await ensureAgentDid({
+                agent, 
+                did, 
+                provider, 
+                setAgent, 
+                setDid
+            });
             
             const sig = signature || localStorage.getItem('signature');
-            if(!sig) {
+            if (!sig) {
                 throw new Error('Missing signature for encryption/decryption');
             }
         
-            await generateIdentityCredential({ agent: a, did: d, signature: sig, payload, avatarFile });
+            await generateIdentityCredential({ 
+                agent: liveAgent, 
+                did: liveDid, 
+                signature: sig, 
+                payload, 
+                avatarFile 
+            });
 
             if (typeof onSuccess === "function") onSuccess();
 
-            const refreshed = await getIdentities(signature);
+            const refreshed = await getIdentities(sig);
             setIdentity(refreshed.identities);
             setAvatarFile(null);
 

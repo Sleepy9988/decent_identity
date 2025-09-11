@@ -7,6 +7,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import { postRequest, getContexts } from "../../utils/apiHelper";
 import { useAgent } from '../../services/AgentContext';
 import SnackbarAlert from "../Misc/Snackbar";
+import { ensureAgentDid } from "../../utils/buildVeramoAgent";
+import { useWeb3Auth } from "@web3auth/modal/react";
 
 /**
  * RequestForm
@@ -28,19 +30,25 @@ export default function RequestForm({ created_reqs, onNewRequest }) {
     const [open, setOpen] = useState(false);
     const [alertType, setAlertType] = useState('error');
 
-    const { agent, did } = useAgent();
+    const { agent, did, setDid, setAgent } = useAgent();
+    const { provider } = useWeb3Auth();
 
     // Pending requests created by the current user, used to mark already-requested contexts.
     const pending_reqs = created_reqs.filter((x) => x.status === 'Pending');
     const created_req_list = pending_reqs.map(x => x.context_id);
+
+    // DID validation 
+    const isValidDid = (s) => /^did:ethr:sepolia:0x[a-fA-F0-9]{40}$/.test(s.trim());
 
     // Search for public contexts by DID.
     const handleClick = async (e) => {
         e.preventDefault();
         setMessage(null);
         
-        if (!value.trim().startsWith('did:ethr:sepolia:') || value.length != 59) {
-            setMessage('Please enter a valid DID starting with did:ethr:sepolia:...');
+        const queryDid = value.trim();
+        if (!isValidDid(queryDid)) {
+            setMessage('The DID you entered is invalid. Please enter a valid DID starting with did:ethr:sepolia:0x...');
+            setAlertType("warning");
             setOpen(true);
             return;
         }
@@ -63,8 +71,21 @@ export default function RequestForm({ created_reqs, onNewRequest }) {
     // Post a new access request for a selected context.
     const handlePostRequest = async (contextId, purpose) => {
         try {
+            const { agent: liveAgent, did: liveDid } = await ensureAgentDid({
+                agent, 
+                did, 
+                provider, 
+                setAgent, 
+                setDid
+            });
             const holderDid = value;
-            await postRequest({did, agent, holderDid, contextId, purpose});
+            await postRequest({
+                did: liveDid, 
+                agent: liveAgent,
+                holderDid, 
+                contextId, 
+                purpose
+            });
             
             setMessage('Request sent successfully');
             setAlertType('success');
@@ -82,6 +103,17 @@ export default function RequestForm({ created_reqs, onNewRequest }) {
     const clearValue = () => {
         setValue('');
     }
+
+    const handleSetValue = (v) => {
+        if (v === did) {
+            setMessage('Please access your identities through the identities page.');
+            setAlertType('warning');
+            setValue('');
+            setOpen(true);
+        } else {
+            setValue(v);
+        }
+    }
    
     return (
         <Box sx={{mt: 5}}>
@@ -91,10 +123,12 @@ export default function RequestForm({ created_reqs, onNewRequest }) {
                     placeholder="Search DID"
                     inputProps={{ 'aria-label': 'Search DID'}}
                     value={value}
-                    onChange={(e) => setValue(e.target.value)}
+                    onChange={(e) => handleSetValue(e.target.value)}
                 />
                 <IconButton onClick={clearValue} disabled={!value}> <CloseIcon /></IconButton>
+
                 <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+
                 <IconButton 
                     sx={{ p: '10px' }} 
                     type="submit" 

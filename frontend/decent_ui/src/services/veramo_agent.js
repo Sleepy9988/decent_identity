@@ -38,9 +38,9 @@ class VeramoAgentWrapper {
                     ...ethrDidResolver({ 
                         networks: [
                             {
-                            name: 'sepolia',
-                            rpcUrl: 'https://sepolia.infura.io/v3/' + infuraProjectId  ,
-                            registry: '0x03d5003bf0e79C5F5223588F347ebA39AfbC3818' // Sepolia registry
+                                name: 'sepolia',
+                                rpcUrl: 'https://sepolia.infura.io/v3/' + infuraProjectId,
+                                registry: '0x03d5003bf0e79C5F5223588F347ebA39AfbC3818' // Sepolia registry
                             },
                         ],
                     }),

@@ -150,6 +150,7 @@ class RequestListSerializer(serializers.ModelSerializer):
     context_id = serializers.UUIDField(source='context.id', read_only=True) 
     context = serializers.CharField(source='context.context', read_only=True) 
     status = serializers.CharField(source='get_status_display', read_only=True) 
+    description = serializers.CharField(source='context.description', read_only=True)
     
     class Meta: 
         model = Request 
@@ -161,6 +162,7 @@ class RequestListSerializer(serializers.ModelSerializer):
             'holder_did', 
             'context_id', 
             'context', 
+            'description',
             'created_at', 
             'expires_at', 
             'approved_at',

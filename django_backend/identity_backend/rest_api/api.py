@@ -182,9 +182,9 @@ class UserAuthenticationView(APIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class CreateCredentialView(APIView):
+class CreateIdentityProfileView(APIView):
     """
-    POST /api/credentials/verify/
+    POST /api/identity/
     Accept a Verifiable Credential, verify with Veramo backend agent, and 
     store the encrypted identity.
     """
@@ -367,7 +367,6 @@ class CreateRequestView(APIView):
         
         # Validate session challenge
         try:
-            #session_challenge = request.session.get('request_challenge') 
             vp_challenge = presentation.get('challenge')
             validate_challenge(request.session, 'request_challenge', vp_challenge)
         except ValidationError as e:
@@ -581,15 +580,15 @@ class RetrieveSharedDataView(APIView):
             plaintext_bytes = f.decrypt(shared_data.enc_data)
             data = json.loads(plaintext_bytes.decode('utf-8'))
         except Exception:
-            return Response({'error': 'Decryption failed. Invalid signture or data.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': 'Decryption failed. Invalid signature or data.'}, status=status.HTTP_403_FORBIDDEN)
         
         return Response({'data': data}, status=status.HTTP_200_OK)
     
 
 class DeleteSharedDataView(APIView):
     """
-    DELETE /api/requests/<uuid:request_id>/shared-data/ 
-    Delete shared data owned by the authenticated user.
+    DELETE /api/shared-data/<uuid:request_id>/
+    Allow data holder to revoke access to the shared data 
     """
     authentication_classes = [JWTAuthentication] 
     permission_classes = [IsAuthenticated] 
@@ -599,7 +598,26 @@ class DeleteSharedDataView(APIView):
         if not profile: 
             return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
         
-        instance = get_object_or_404(SharedData, id=request_id, requestor=profile)
-        instance.delete()
+        sd = get_object_or_404(
+            SharedData.objects.select_related('request', 'request__holder', 'request__requestor'),
+            request__id=request_id,
+            request__holder=profile,
+        )
+        req = sd.request
+        sd.delete()
+
+        if req.status == Request.Status.APPROVED:
+            req.expires_at = timezone.now()
+            req.reason = 'Access revoked by holder'
+            req.save(update_fields=['expires_at', 'reason'])
+
+        notify_did(req.requestor.did, {
+            "event": "access revoked",
+            "request_id": str(req.id),
+            "status": req.get_status_display(),
+            "expires_at": req.expires_at.isoformat() if req.expires_at else None,
+            "reason": req.reason,
+        })
+
         return Response(status=status.HTTP_204_NO_CONTENT)
  

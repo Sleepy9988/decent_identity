@@ -10,15 +10,15 @@ const infuraProjectId = '6568670383cf484cb817256f0eea66b5'
  * Veramo Agent Configuration
  *
  * This agent is configured with:
- * - `DIDResolverPlugin`: Enables resolving Ethereum-based DIDs (`did:ethr`)
+ * - DIDResolverPlugin: Enables resolving Ethereum-based DIDs (`did:ethr`)
  *   using Infura RPC endpoints. Supports multiple networks.
  *   - mainnet (chainId 1)
  *   - sepolia testnet (chainId 11155111, with explicit registry contract)
  *
- * - `CredentialIssuerEIP712`: Adds support for issuing/verifying
+ * - CredentialIssuerEIP712: Adds support for issuing/verifying
  *   W3C Verifiable Credentials (VCs) using EIP-712 typed data signatures.
  *
- * - `CredentialPlugin`: Provides standard Verifiable Credential
+ * - CredentialPlugin: Provides standard Verifiable Credential
  *   issuance/verification APIs (W3C-compliant).
  */
 

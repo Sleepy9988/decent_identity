@@ -12,11 +12,9 @@ import SnackbarAlert from "../Misc/Snackbar";
 /**
  * IdentityForm
  * 
- * Creates a VC payload by collecting a context, desscription, optionally an avatar,
+ * Creates a VC payload by collecting a context, description, optionally an avatar,
  * and up to 5 key/value identity attributes (either date or string).
- * 
  */
-
 export default function IdentityForm() {
     const [context, setContext] = useState('');
     const [description, setDescription] = useState('');
@@ -165,6 +163,7 @@ export default function IdentityForm() {
                                     }
                                     handleUpdate(index, 'value', val.toDate().toISOString());
                                 }}
+                                format="DD/MM/YYYY"
                                 sx={{ width: '500px' }}
                             />
                             

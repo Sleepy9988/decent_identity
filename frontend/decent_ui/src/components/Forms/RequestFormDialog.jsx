@@ -10,6 +10,10 @@ import BadgeIcon from '@mui/icons-material/Badge';
  * - Displays a text field for purpose (mandatory).
  * - On submit, calls onSubmitRequest then closes
  * - Shows disabled "Pending" button if request already exists. 
+ * 
+ * Props:
+ * - requested_already: boolean, whether the request is pending already
+ * - onSubmitRequest: callback to send request purpose string
  */
 
 export default function FormDialog({ requested_already, onSubmitRequest }) {

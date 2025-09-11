@@ -43,7 +43,7 @@ export default function NotificationPopover() {
                     
                 />
             </Badge>
-            
+
             {/* Popover with notifications list */}
             <Popover
                 id="notif-popover"
@@ -79,7 +79,11 @@ export default function NotificationPopover() {
                                                         </Typography>
                                                     )}
                                                     {notification.created_at && (
-                                                        <Typography variant="body2" sx={{ display: 'block', mt: 0.5 }}>
+                                                        <Typography 
+                                                        variant="body2" 
+                                                        sx={{ display: 'block', mt: 0.5 }}
+                                                        component="span"
+                                                    >
                                                             {new Date(notification.created_at).toLocaleString()}
                                                         </Typography>
                                                     )}

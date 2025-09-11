@@ -5,7 +5,7 @@ import { apiRequest } from "./apiClient";
 export async function checkDIDProfile({ agent, did }) {
     // Request and extract challenge (nonce) from the backend (to prevent replay attacks)
     
-    const { challenge } = await apiRequest('/api/auth/challenge/', { method: 'GET'});
+    const { challenge } = await apiRequest('/api/auth/challenge/', { method: 'GET' });
 
     const rawPresentation = {
         holder: did,
@@ -69,7 +69,7 @@ export async function generateIdentityCredential({ agent, did, signature, payloa
     formData.append('signature', signature);
     if (avatarFile) formData.append('avatar', avatarFile, avatarFile.name);
 
-    await apiRequest('/api/credentials/verify/', { 
+    await apiRequest('/api/identity/', { 
         method: 'POST',
         body: formData
     });

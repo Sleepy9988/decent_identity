@@ -3,7 +3,7 @@
   https://github.com/decentralized-identity/veramo/tree/next/packages/remote-server 
 */
 import express from 'express';
-import { agent } from './veramo_agent.js';
+import { agent } from './veramo_backend_agent.js';
 import swaggerUi from 'swagger-ui-express';
 import {
   AgentRouter,

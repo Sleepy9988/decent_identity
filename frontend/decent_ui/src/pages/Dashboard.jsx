@@ -40,13 +40,13 @@ import { QRCodeCanvas } from 'qrcode.react';
 const Dashboard = () => {
     const { did, id, meta } = useAgent();
     const [qrOpen, setQROpen] = useState(false);
-    const [isAnchored, setIsAnchored] = useState(false);
+    const [isResolvable, setIsResolvable] = useState(false);
 
     // Check DID anchoring on-chain whenever DID changes
     useEffect(() => {
         const checkDidAnchored = async () => {
             const res = await checkDidOnChain(did);
-            setIsAnchored(res);
+            setIsResolvable(res);
         }
         if (did) {
             checkDidAnchored();
@@ -161,9 +161,9 @@ const Dashboard = () => {
                                 <TableCell sx={{ fontSize: '1.1rem' }}>{meta.network.name.toUpperCase()}</TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell sx={{ fontSize: '1.1rem', fontWeight: 500 }}>Anchored on Ethereum Blockchain</TableCell>
+                                <TableCell sx={{ fontSize: '1.1rem', fontWeight: 500 }}>Valid DID (Resolvable)</TableCell>
                                 <TableCell>
-                                    <Checkbox checked={isAnchored} />
+                                    <Checkbox checked={isResolvable} />
                                 </TableCell>
                             </TableRow>
                         </TableBody>

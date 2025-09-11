@@ -6,7 +6,6 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { deleteIdentities, updateIdentity } from "../../utils/apiHelper";
 import { useLocation } from "react-router-dom";
 import AlertDialog from '../Misc/AlertDialog';
-import SnackbarAlert from "../Misc/Snackbar";
 
 /**
  * IdentityCard 
@@ -17,15 +16,11 @@ import SnackbarAlert from "../Misc/Snackbar";
  * - Delete identity with confirmation dialog and snackbar feedback. 
  * - Calles parent callbacks to sync list state.
  */
-
-export default function IdentityCard ({ identity, onDeleted, onUpdated }) {
+export default function IdentityCard ({ identity, onDeleted, onUpdated, onNotify }) {
     const { id, context, description, issued, decrypted_data, is_active, avatar } = identity;
     const [deleting, setDeleting] = useState(false);
     const [openDialog, setOpenDialog] = useState(false);
     const [updating, setUpdating] = useState(false);
-    const [open, setOpen] = useState(false);
-    const [message, setMessage] = useState('');
-    const [alertType, setAlertType] = useState('success');
     const location = useLocation();
     const entries = decrypted_data ? Object.entries(decrypted_data) : [];
 
@@ -56,19 +51,15 @@ export default function IdentityCard ({ identity, onDeleted, onUpdated }) {
         try {
             setDeleting(true);
             await deleteIdentities([id]);
+            onNotify('Identity deleted successfully.', 'success');
             if (onDeleted) onDeleted(id);
-            setOpen(true);
-            setMessage('Identity deleted successfully.');
-            setAlertType('success');
         } catch (err) {
             console.error("Deletion failed", err);
-            setOpen(true);
-            setMessage('Identity could not be deleted.');
-            setAlertType('error');
+            onNotify('Identity could not be deleted.', 'error');
         } finally {
             setDeleting(false);
         }
-    }, [id, deleting, onDeleted]);
+    }, [id, deleting, onDeleted, onNotify]);
 
     const handleCancelDelete = useCallback(() => {
         setOpenDialog(false);
@@ -123,13 +114,14 @@ export default function IdentityCard ({ identity, onDeleted, onUpdated }) {
                                         </Fab>
                                     </span>
                                 </Tooltip>
-                                <SnackbarAlert msg={message} open={open} setOpen={setOpen} type={alertType} />
                             </Box>
                         )}
                     </Box>
                 }
             />
+
             <Divider sx={{ borderColor: 'white'}} />
+
             <CardContent>
                 {entries.length > 0 ? (
                     <Stack spacing={1} sx={{width: '100%'}}>

@@ -5,6 +5,7 @@ import RequestCardList from '../components/Cards/RequestCardList';
 import { getRequests } from '../utils/apiHelper';
 import { useAgent } from '../services/AgentContext';
 
+const STATUS_OPTIONS = ['All','Approved', 'Pending', 'Declined'];
 /**
  * Requests 
  * 
@@ -23,8 +24,9 @@ const Requests = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState('All');
+    const [lastRevokedId, setLastRevokedId] = useState(null);
     
-    const { did } = useAgent();
+    const { did, notifications } = useAgent();
 
     const [currentPage, setCurrentPage] = useState(1);
     const cardsPerPage = 5; 
@@ -52,18 +54,20 @@ const Requests = () => {
 
     const handleChange = (e, newValue) => {
         setValue(newValue);
+        setCurrentPage(1);
     };
 
     // Status filter component
     const StatusFilter = () => {
         return ( 
             <Autocomplete 
-                options={['All','Approved', 'Pending', 'Declined']}
+                options={STATUS_OPTIONS}
                 sx={{ width: 300, mt: 5 }}
                 renderInput={(params) => <TextField { ...params} label="Status" />}
                 value={status}
                 onChange={(e, newStatus) => {
-                    setStatus(newStatus);
+                    setStatus(newStatus || 'All');
+                    setCurrentPage(1);   
                 }}
             />
         );
@@ -82,6 +86,18 @@ const Requests = () => {
     const idxFirstCard = idxLastCard - cardsPerPage;
     const currentCardsReq = created_reqs.slice(idxFirstCard, idxLastCard);
     const currentCardsRec = received_reqs.slice(idxFirstCard, idxLastCard);
+
+    useEffect(() => {
+        if (!notifications.length) return;
+        const n = notifications[notifications.length - 1];
+        if (n.event === 'access revoked' && n.request_id && n.request_id !== lastRevokedId) {
+            setLastRevokedId(n.request_id);
+            loadRequest();
+        }
+        if (n.event === 'new request received' || n.event === 'request answer received') {
+            loadRequest();
+        }
+    }, [notifications, loadRequest, lastRevokedId]);
 
     return (
         <Box>
@@ -108,7 +124,7 @@ const Requests = () => {
                 )}
 
                 {/* Tab 2: Received Requests */}
-                {value == "2" && (
+                {value === "2" && (
                     <> 
                         {loading && <Typography sx={{ mt: 3 }}>Loading...</Typography>}
                         <StatusFilter />
@@ -124,7 +140,7 @@ const Requests = () => {
                 )}
 
                 {/* Tab 3: Created Requests */}
-                {value == "3" && (
+                {value === "3" && (
                     <> 
                         {loading && <Typography sx={{ mt: 3 }}>Loading...</Typography>}
                         <StatusFilter />

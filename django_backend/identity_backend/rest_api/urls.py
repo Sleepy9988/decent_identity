@@ -2,7 +2,7 @@ from django.urls import path
 from .api import (
     UserAuthenticationView, 
     LoginChallengeView, 
-    CreateCredentialView,
+    CreateIdentityProfileView,
     GetMyIdentitiesView,
     IdentityDeleteView,
     GetContexts,
@@ -19,7 +19,7 @@ from .api import (
 urlpatterns = [
     path('auth/authenticate/', UserAuthenticationView.as_view(), name='auth_authenticate'),
     path('auth/challenge/', LoginChallengeView.as_view(), name='auth_challenge'),
-    path('credentials/verify/', CreateCredentialView.as_view(), name='verify_credentials'),
+    path('identity/', CreateIdentityProfileView.as_view(), name='create_identity_profile'),
     path('me/identities/', GetMyIdentitiesView.as_view(), name='get_identities'),
     path('me/identities/<uuid:identity_id>/active/', UpdateIdentityActiveView.as_view(), name="set_identity_visibility"),
     path('me/identities/mass-delete/', IdentityDeleteView.as_view(), name='mass_delete_identities'),

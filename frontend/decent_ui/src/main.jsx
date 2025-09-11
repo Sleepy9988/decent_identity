@@ -24,7 +24,7 @@ import theme from './theme';
  * 
  * Inside these providers, the main App component handles routing & layout. 
  * 
- * Strictmode disabled since it interferes with the Carousel component. 
+ * Strictmode disabled because it interferes with the Carousel component. 
  */
 
 createRoot(document.getElementById('root')).render(

@@ -86,7 +86,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'drf_yasg',
-    'schema_viewer'
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -226,3 +226,8 @@ SWAGGER_SETTINGS = {
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+GRAPH_MODELS = {
+    'all_applications': True, 
+    'graph_models': True,
+}

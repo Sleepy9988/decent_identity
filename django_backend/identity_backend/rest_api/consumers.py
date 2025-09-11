@@ -66,8 +66,8 @@ class BackendConsumer(AsyncWebsocketConsumer):
                 logger.warning("WS connect denied: token missing user_id.")
                 await self.close(code=4401)
                 return
-        except (InvalidToken, TokenError):
-            logger.warning("WS connect denied: invalid token: %s", e)
+        except (InvalidToken, TokenError) as e:
+            logger.warning("WS connect denied: invalid token: %s.", e)
             await self.close(code=4401)
             return
         

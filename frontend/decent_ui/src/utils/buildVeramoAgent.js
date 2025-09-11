@@ -34,3 +34,22 @@ export async function buildVeramoFromWeb3Provider(web3authProvider, publicKeyHex
     
     return wrapper;
 }
+
+
+// Rebuild agent & DID if missing, using a provider
+export async function ensureAgentDid(agent, did, provider, setAgent, setDid) {
+    if (agent && did) return { agent, did}
+    
+    if (!provider) throw new Error('Wallet provider not connected. Please log in again.');
+
+    const storedPK = localStorage.getItem('publicKeyHex') || '';
+    const wrapper = await buildVeramoFromWeb3Provider(provider, storedPK);
+    
+    const rebuildAgent = wrapper.getAgent();
+    const rebuildDid = wrapper.getDID();
+    
+    setAgent(rebuildAgent);
+    setDid(rebuildDid);
+
+    return { agent: rebuildAgent, did: rebuildDid };
+};

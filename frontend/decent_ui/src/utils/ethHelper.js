@@ -21,7 +21,7 @@ export async function checkDidOnChain (did) {
         const resolver = createResolver();
         const result = await resolver.resolve(did);
         const doc = result.didDocument;
-        return Boolean(doc?.id);
+        return Boolean(doc.id);
     } catch {
         return false;
     }

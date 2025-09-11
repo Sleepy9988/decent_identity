@@ -20,6 +20,7 @@ import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import { updateRequest, deleteRequest, accessApprovedData, revokeAccessApprovedData } from "../../utils/apiHelper";
 import AlertDialog from "../Misc/AlertDialog";
+import DataDialog from "../Misc/DataDialog";
 import DatePickerComponent from "../Misc/DatePicker";
 import dayjs from "dayjs";
 import SnackbarAlert from "../Misc/Snackbar";
@@ -39,7 +40,6 @@ import { useAgent } from '../../services/AgentContext';
  * - canDecide: Boolean flag indicating if the user can approve/decline 
  * - onUpdate: Callback to refresh data after any change
  */
-
 export default function RequestCardList({ requests, canDecide, onUpdate }) {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [reqToDelete, setReqToDelete] = useState(null);
@@ -51,9 +51,11 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
     const [openSnack, setOpenSnack] = useState(false);
     const [messageSnack, setMessageSnack] = useState('');
     const [alertTypeSnack, setAlertTypeSnack] = useState('success');
+    const [dataDialogOpen, setDataDialogOpen] = useState(false);
+    const [dataToDisplay, setDataToDisplay] = useState({ data: null, context: '', description: '' });
     
     const { signature } = useAgent();
-
+    
     // Visual status icon for each request state.
     const getStatusIcon = (status) => {
         switch(status) {
@@ -159,6 +161,11 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
         setReqToDelete(null);
     },[]);
 
+    const handleCloseDataDialog = useCallback(() => {
+        setDataDialogOpen(false);
+        setDataToDisplay({ data: null, context: '', description: '' });
+    }, []);
+
     // Generic update function covering approve/decline with optional reason/expiry.
     const handleRequestUpdate = async (req_id, act, reason, expires_at) => {
         const updates = {
@@ -181,12 +188,45 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                 console.error('Missing signature.');
                 return;
             }
+
+            const request = requests.find(( { id }) => id === reqId);
+
+            if (!request) {
+                console.error('Request not found for ID:', reqId)
+                return;
+            }
+
             const res = await accessApprovedData({ request_id: reqId, signature })
-            console.log('Decrypted data:', res.data);
+            setDataToDisplay({
+                context: request.context, 
+                description: request.description, 
+                data: res.data
+            });
+            setDataDialogOpen(true);
         } catch (err) {
             console.error("Error accessing approved data:", err);
+            setOpenSnack(true);
+            setMessageSnack('Failed to access data. The data may be expired or inaccessible.');
+            setAlertTypeSnack('error');
         }
     }
+
+    const handleRevoke = useCallback(async (reqId) => {
+        try {
+            await revokeAccessApprovedData({ request_id: reqId });
+            onUpdate();
+            setOpenSnack(true);
+            setMessageSnack('Access revoked.');
+            setAlertTypeSnack('success');
+        } catch (err) {
+            console.error("Revocation failed:", err);
+            setOpenSnack(true);
+            setMessageSnack('Failed to revoke access.');
+            setAlertTypeSnack('error');
+        }
+    }, [onUpdate]);
+
+
 
     if (!Array.isArray(requests) || requests.length === 0) {
         return <Typography sx={{ mt: 3 }}> There are no requests yet.</Typography>;
@@ -293,7 +333,7 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                                 !canDecide ? (
                                     <Button variant="outlined" size="medium" color="warning" onClick={() => handleAccessApprovedData(r.id)}>Access Data</Button>
                                 ) : (
-                                    <Button variant="outlined" size="medium" color="warning" onClick={() => revokeAccessApprovedData(r.id)}>Revoke</Button>
+                                    <Button variant="outlined" size="medium" color="warning" onClick={() => handleRevoke(r.id)}>Revoke</Button>
                                 )
                             ) : (
                                 <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%'}}>
@@ -303,12 +343,19 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                             )}
                         </CardActions>
                         <Typography sx={{ textAlign: 'start', color: '#aaa', fontSize: 'small', ml: 1}}>
-                            Expires: {r.expires_at? new Date(r.created_at).toLocaleString() : '-'}
+                            Expires: {r.expires_at? new Date(r.expires_at).toLocaleString() : '-'}
                         </Typography>
                         </>
                     )}
                 </Card>
             ))}
+            
+            <DataDialog 
+                open={dataDialogOpen}
+                dataToDisplay={dataToDisplay}
+                onClose={handleCloseDataDialog}
+            />
+
             {/* Cancel confirmation dialog */}
             <AlertDialog
                 open={dialogOpen}
