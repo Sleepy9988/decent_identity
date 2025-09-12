@@ -4,7 +4,9 @@ import { CredentialIssuerEIP712 } from '@veramo/credential-eip712';
 import { DIDResolverPlugin } from '@veramo/did-resolver';
 import { getResolver as ethrDidResolver } from 'ethr-did-resolver';
 
-const infuraProjectId = '6568670383cf484cb817256f0eea66b5'
+const infuraProjectId = process.env.INFURA_PROJECT_ID || '';
+const registry = process.env.ETHR_REGISTRY_ADDRESS || '0x03d5003bf0e79C5F5223588F347ebA39AfbC3818';
+const network = process.env.ETH_NETWORK || 'sepolia';
 
 /**
  * Veramo Agent Configuration
@@ -31,14 +33,14 @@ export const agent = createAgent({
         networks: [
           { 
             name: 'mainnet', 
-            rpcUrl: 'https://mainnet.infura.io/v3/' + infuraProjectId, 
+            rpcUrl: `https://mainnet.infura.io/v3/${infuraProjectId}`, 
             chainId: 1
           },
           { 
             name: 'sepolia', 
-            rpcUrl: 'https://sepolia.infura.io/v3/' + infuraProjectId, 
+            rpcUrl: `https://${network}.infura.io/v3/${infuraProjectId}`, 
             chainId: 11155111, 
-            registry: '0x03d5003bf0e79C5F5223588F347ebA39AfbC3818'
+            registry
           },
         ], 
        }),

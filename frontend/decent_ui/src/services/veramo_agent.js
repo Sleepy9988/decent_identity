@@ -12,7 +12,8 @@ import { getResolver } from 'ethr-did-resolver';
 import { Resolver } from 'did-resolver';
 
 // Infura Project ID - to get information from the Ethereum Sepolia blockchain
-const infuraProjectId = '6568670383cf484cb817256f0eea66b5'
+const infuraProjectId = import.meta.env.VITE_INFURA_PROJECT_ID;
+const registry = import.meta.env.ETHR_REGISTRY_ADDRESS;
 
 class VeramoAgentWrapper {
     constructor(provider, signer, publicKeyHex) {
@@ -39,8 +40,8 @@ class VeramoAgentWrapper {
                         networks: [
                             {
                                 name: 'sepolia',
-                                rpcUrl: 'https://sepolia.infura.io/v3/' + infuraProjectId,
-                                registry: '0x03d5003bf0e79C5F5223588F347ebA39AfbC3818' // Sepolia registry
+                                rpcUrl: `https://sepolia.infura.io/v3/${infuraProjectId}`,
+                                registry // Sepolia registry
                             },
                         ],
                     }),
@@ -119,15 +120,13 @@ class VeramoAgentWrapper {
 
 export default VeramoAgentWrapper;
 
-
-
 export const createResolver = () => {
     const ethrDidResolver = getResolver({
            networks: [
                {
                    name: 'sepolia',
-                   rpcUrl: 'https://sepolia.infura.io/v3/6568670383cf484cb817256f0eea66b5',
-                   registry: '0x03d5003bf0e79C5F5223588F347ebA39AfbC3818'
+                   rpcUrl: `https://sepolia.infura.io/v3/${infuraProjectId}`,
+                   registry
                }
            ]
        });
