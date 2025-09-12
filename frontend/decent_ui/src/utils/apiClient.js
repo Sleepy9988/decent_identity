@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8000';
+const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
 const TIMEOUT = 15000;
 
 // Add JSON headers only if body is present
