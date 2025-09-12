@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from './Header';
 import Footer from './Footer';
-import SidebarLeft from './sidebar';
+import SidebarLeft from './Sidebar';
 
 import { useAgent } from '../../services/AgentContext';
 import { useWeb3AuthConnect } from "@web3auth/modal/react";
