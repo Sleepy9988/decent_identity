@@ -9,6 +9,9 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import App from './App.jsx'
 import { ThemeProvider, CssBaseline  } from '@mui/material';
 import theme from './theme';
+import { Buffer } from 'buffer';
+
+if(!window.Buffer) window.Buffer = Buffer
 
 /**
  * Application Entry Point 

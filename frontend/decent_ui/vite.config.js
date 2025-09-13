@@ -4,24 +4,22 @@ import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfil
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    react()
-  ],
+  plugins: [ react()],
+  resolve: {
+    alias: { buffer: 'buffer/' },
+  },
+  define: {
+    global: 'globalThis',
+  },
   optimizeDeps: {
+    include: ['buffer'],
     esbuildOptions: {
-      define: {
-        global: "globalThis", // added for Buffer
-      },
       plugins: [
         NodeGlobalsPolyfillPlugin({
           buffer: true,
+          process: true,
         }),
       ],
     },
-  },
-  resolve: {
-    alias: [
-      { find: "buffer", replacement: "buffer/" }, //  added for Buffer
-    ],
   },
 })
