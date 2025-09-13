@@ -1,8 +1,10 @@
-import requests, logging, re, json
+import os, requests, logging, re 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
 logger = logging.getLogger('rest_api')
+
+VERAMO_URL = os.getenv("VERAMO_URL", "http://veramo:3003").rstrip("/")
 
 def verify_with_veramo(endpoint, json_data):
     """
@@ -19,7 +21,7 @@ def verify_with_veramo(endpoint, json_data):
     Raises:
         HTTPError / RequestException if the request fails.
     """
-    veramo_service_url = f'http://localhost:3003/{endpoint}'
+    veramo_service_url = f"{VERAMO_URL}/{endpoint.lstrip('/')}"
 
     try: 
         response = requests.post(veramo_service_url, json=json_data)
