@@ -13,7 +13,7 @@ import { Resolver } from 'did-resolver';
 
 // Infura Project ID - to get information from the Ethereum Sepolia blockchain
 const infuraProjectId = import.meta.env.VITE_INFURA_PROJECT_ID;
-const registry = import.meta.env.ETHR_REGISTRY_ADDRESS;
+const registry = import.meta.env.VITE_ETHR_REGISTRY_ADDRESS;
 
 class VeramoAgentWrapper {
     constructor(provider, signer, publicKeyHex) {

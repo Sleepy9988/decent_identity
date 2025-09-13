@@ -79,6 +79,7 @@ export async function apiRequest(
         headers = {},
     } = {}
 ) {
+
     const url = path.startsWith('http') ? path : `${BASE_URL}${path}`;
 
     // Perform the fetch with appropriate headers/body

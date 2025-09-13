@@ -1,6 +1,6 @@
-from django.urls import path
-from rest_api import consumers 
+from django.urls import re_path
+from rest_api.consumers import BackendConsumer 
 
 websocket_urlpatterns = [
-    path('ws/notifications/<str:did>/', consumers.BackendConsumer.as_asgi(), )
+    re_path(r"^ws/notifications/(?P<did>[^/]+)/?$", BackendConsumer.as_asgi(), )
 ]

@@ -1,5 +1,5 @@
 import { ethers, hashMessage } from "ethers";
-import { recoverPublicKey } from "@ethersproject/signing-key";
+//import { recoverPublicKey } from "@ethersproject/signing-key";
 import { checkDIDProfile } from "./apiHelper";
 import VeramoAgentWrapper from "../services/veramo_agent";
 
@@ -30,6 +30,7 @@ export async function handleWeb3AuthLogin(web3authProvider) {
     if (!web3authProvider) return;
 
     try {
+
         // Setup ethers provider and signer
         const ethersProvider = new ethers.BrowserProvider(web3authProvider);
         const signer = await ethersProvider.getSigner();
@@ -38,7 +39,7 @@ export async function handleWeb3AuthLogin(web3authProvider) {
         const message = "DIDHub cryptographic key";
         const signature = await signer.signMessage(message);
         const digest = hashMessage(message);
-        const publicKey = recoverPublicKey(digest, signature);
+        const publicKey = ethers.SigningKey.recoverPublicKey(digest, signature);
         // remove '0x04' prefix from uncompressed key
         const publicKeyHex = publicKey.slice(4);
 

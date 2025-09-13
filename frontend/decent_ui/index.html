@@ -2,9 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="src/assets/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DIDHub</title>
+
+    <script type="module">
+      import { Buffer } from 'buffer'
+      import process from 'process'
+      if (!window.global) window.global = window
+      if (!window.Buffer) window.Buffer = Buffer
+      if (!window.process) window.process = process
+      if (!window.process.env) window.process.env = {}
+      window.process.env.NODE_ENV ??= (import.meta.env?.MODE || 'production')
+    </script>
+
+    <link rel="icon" type="image/svg+xml" href="src/assets/logo.png" />
   </head>
   <body>
     <div id="root"></div>

@@ -90,6 +90,8 @@ class LoginChallengeView(APIView):
     GET /api/auth/challenge/
     Issue a login challenge and store it in the session
     """
+    permission_classes = [AllowAny]
+    authentication_classes = []
     def get(self, request, *args, **kwargs):
         challenge = issue_challenge(request.session, "login_challenge")
         return Response({'challenge': challenge}, status=status.HTTP_200_OK)

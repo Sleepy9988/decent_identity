@@ -140,8 +140,12 @@ export const AgentProvider = ({ children }) => {
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
         if (!did || !token) return;
-        const WS_BASE = (import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws').replace(/\/+$/, '');
-        const newSocket = new WebSocket(`${WS_BASE}:8000/ws/notifications/${encodeURIComponent(did)}/?token=${encodeURIComponent(token)}`);
+        const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsHost  = location.host;
+        const WS_BASE = (import.meta.env.VITE_WS_URL || '/ws').replace(/\/+$/, '')
+        const path = `${WS_BASE}/notifications/${encodeURIComponent(did)}/`
+        const wsUrl = `${wsProto}//${wsHost}${path}?token=${encodeURIComponent(token)}`
+        const newSocket = new WebSocket(wsUrl);
 
         setSocket(newSocket);
 

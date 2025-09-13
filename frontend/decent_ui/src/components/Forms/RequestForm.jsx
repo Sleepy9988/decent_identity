@@ -57,11 +57,18 @@ export default function RequestForm({ created_reqs, onNewRequest }) {
         try {
             setLoading(true);
             const response = await getContexts(did);
-            setContexts(response.contexts);
+            const list = Array.isArray(response.contexts) ? response.contexts : [];
+            setContexts(list);
+
+            if (list.length === 0) {
+                setMessage('No public identities available for this DID.');
+                setAlertType('warning');
+                setOpen(true);
+            }
         } catch (err) {
-            console.error('Error obtaining contexts', err);
+            console.error('Error obtaining identities', err);
             setOpen(true);
-            setMessage('Error obtaining contexts', err);
+            setMessage('Error obtaining identities', err);
             setAlertType('error');
         } finally {
             setLoading(false);
