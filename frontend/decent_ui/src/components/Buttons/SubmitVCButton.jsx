@@ -17,7 +17,7 @@ import { ensureAgentDid } from "../../utils/buildVeramoAgent";
  */
 
 const SubmitVCButton = ({ payload, onSuccess, avatarFile, setAvatarFile, setOpen, setMessage, setAlertType }) => {
-    const { provider } = useWeb3Auth();
+    const { provider, connect } = useWeb3Auth();
     const { agent, did, signature, setIdentity, setAgent, setDid } = useAgent();
     const [pending, setPending] = useState(false); 
     
@@ -29,6 +29,7 @@ const SubmitVCButton = ({ payload, onSuccess, avatarFile, setAvatarFile, setOpen
                 agent, 
                 did, 
                 provider, 
+                connect,
                 setAgent, 
                 setDid
             });
@@ -37,7 +38,12 @@ const SubmitVCButton = ({ payload, onSuccess, avatarFile, setAvatarFile, setOpen
             if (!sig) {
                 throw new Error('Missing signature for encryption/decryption');
             }
-        
+            if (!provider) {
+                setAlertType('warning');
+                setMessage('Wallet is not connected.');
+                setOpen(true);
+                return;
+            }
             await generateIdentityCredential({ 
                 agent: liveAgent, 
                 did: liveDid, 

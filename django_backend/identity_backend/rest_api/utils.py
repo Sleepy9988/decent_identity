@@ -1,10 +1,9 @@
 import os, requests, logging, re 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.conf import settings
 
 logger = logging.getLogger('rest_api')
-
-VERAMO_URL = os.getenv("VERAMO_URL", "http://veramo:3003").rstrip("/")
 
 def verify_with_veramo(endpoint, json_data):
     """
@@ -21,7 +20,9 @@ def verify_with_veramo(endpoint, json_data):
     Raises:
         HTTPError / RequestException if the request fails.
     """
-    veramo_service_url = f"{VERAMO_URL}/{endpoint.lstrip('/')}"
+    base = settings.VERAMO_URL
+    endpoint = endpoint.lstrip("/")
+    veramo_service_url = f"{base}/{endpoint}"
 
     try: 
         response = requests.post(veramo_service_url, json=json_data)
@@ -62,3 +63,15 @@ def notify_did(did, payload):
             "message": payload,         
         }
     )
+
+
+def to_bytes(v):
+    if v is None:
+        return None
+    if isinstance(v, memoryview):
+        return v.tobytes()
+    if isinstance(v, bytearray):
+        return bytes(v)
+    if isinstance(v, str):
+        return v.encode('utf-8')
+    return v

@@ -27,7 +27,7 @@ from .serializers import (
     IdentityActiveSerializer,
     ContextSerializer
 )
-from .utils import verify_with_veramo, notify_did
+from .utils import verify_with_veramo, notify_did, to_bytes
 from .cryptographic_utils import unwrap_key_w_signature, fernet_encKey
 
 import secrets, logging, requests, json, base64
@@ -577,9 +577,13 @@ class RetrieveSharedDataView(APIView):
             return Response({'error': 'Missing signature'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            enc_key = unwrap_key_w_signature(shared_data.encKey_wrapped, signature, shared_data.wrap_salt)
+            wrapped_key = to_bytes(shared_data.encKey_wrapped)
+            salt = to_bytes(shared_data.wrap_salt)
+            ciphertext = to_bytes(shared_data.enc_data)
+
+            enc_key = unwrap_key_w_signature(wrapped_key, signature, salt)
             f = fernet_encKey(enc_key)
-            plaintext_bytes = f.decrypt(shared_data.enc_data)
+            plaintext_bytes = f.decrypt(ciphertext)
             data = json.loads(plaintext_bytes.decode('utf-8'))
         except Exception:
             return Response({'error': 'Decryption failed. Invalid signature or data.'}, status=status.HTTP_403_FORBIDDEN)

@@ -22,6 +22,7 @@ import VeramoAgentWrapper from '../services/veramo_agent';
  */
 
 export async function buildVeramoFromWeb3Provider(web3authProvider, publicKeyHex) {
+    if (!web3authProvider) throw new Error('No wallet provider passed to buildVeramoFromWeb3Provider');
     // Create ethers.js provider from Web3Auth provider
     const ethersProvider = new ethers.BrowserProvider(web3authProvider);
     
@@ -37,19 +38,30 @@ export async function buildVeramoFromWeb3Provider(web3authProvider, publicKeyHex
 
 
 // Rebuild agent & DID if missing, using a provider
-export async function ensureAgentDid(agent, did, provider, setAgent, setDid) {
+export async function ensureAgentDid({agent, did, provider, connect, setAgent, setDid, publicKeyHex}) {
     if (agent && did) return { agent, did}
     
-    if (!provider) throw new Error('Wallet provider not connected. Please log in again.');
+    let liveProvider = provider;
+    if (!liveProvider && typeof connect === 'function') {
+        try {
+            const maybeProvider = await connect();
+            liveProvider = maybeProvider || liveProvider;
+        } catch {
+            // do nothing
+        }
+    }
+    if (!liveProvider) {
+        throw new Error('Wallet provider not connected. Please log in again.');
+    }
 
-    const storedPK = localStorage.getItem('publicKeyHex') || '';
-    const wrapper = await buildVeramoFromWeb3Provider(provider, storedPK);
+    const storedPK = publicKeyHex ?? localStorage.getItem('publicKeyHex') ?? '';
+    const wrapper = await buildVeramoFromWeb3Provider(liveProvider, storedPK);
     
-    const rebuildAgent = wrapper.getAgent();
-    const rebuildDid = wrapper.getDID();
+    const newAgent = wrapper.getAgent();
+    const newDid = wrapper.getDID();
     
-    setAgent(rebuildAgent);
-    setDid(rebuildDid);
+    setAgent(newAgent);
+    setDid(newDid);
 
-    return { agent: rebuildAgent, did: rebuildDid };
+    return { agent: newAgent, did: newDid };
 };

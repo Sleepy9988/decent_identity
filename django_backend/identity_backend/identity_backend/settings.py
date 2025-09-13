@@ -230,3 +230,5 @@ GRAPH_MODELS = {
     'all_applications': True, 
     'graph_models': True,
 }
+
+VERAMO_URL = os.getenv("VERAMO_URL", "http://localhost:3003").rstrip("/")

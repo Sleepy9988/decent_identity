@@ -31,7 +31,7 @@ export default function RequestForm({ created_reqs, onNewRequest }) {
     const [alertType, setAlertType] = useState('error');
 
     const { agent, did, setDid, setAgent } = useAgent();
-    const { provider } = useWeb3Auth();
+    const { provider, connect } = useWeb3Auth();
 
     // Pending requests created by the current user, used to mark already-requested contexts.
     const pending_reqs = created_reqs.filter((x) => x.status === 'Pending');
@@ -81,11 +81,17 @@ export default function RequestForm({ created_reqs, onNewRequest }) {
             const { agent: liveAgent, did: liveDid } = await ensureAgentDid({
                 agent, 
                 did, 
-                provider, 
+                provider,
+                connect,
                 setAgent, 
                 setDid
             });
             const holderDid = value;
+            if (!provider) {
+                setAlertType('warning');
+                setMessage('Wallet is not connected.');
+                setOpen(true);
+            }
             await postRequest({
                 did: liveDid, 
                 agent: liveAgent,
@@ -125,8 +131,8 @@ export default function RequestForm({ created_reqs, onNewRequest }) {
     return (
         <Box sx={{mt: 5}}>
             {/* DID search input */}
-            <Paper component="form" variant="outlined" sx={{ p: '2px 4px', mb: 5, display: 'flex', alignItems: 'center', width: 800 }}>
-                <InputBase sx={{ ml: 1, flex: 1, fontSize: '1.2rem' }}
+            <Paper component="form" variant="outlined" sx={{ p: { xs: 1, sm: 1.5 }, mb: 5, display: 'flex', alignItems: 'center', width: "100%", maxWidth: 800, mx: "auto"  }}>
+                <InputBase sx={{ ml: 1, flex: 1, fontSize: { xs: "1rem", sm: "1.1rem" } }}
                     placeholder="Search DID"
                     inputProps={{ 'aria-label': 'Search DID'}}
                     value={value}
@@ -157,7 +163,7 @@ export default function RequestForm({ created_reqs, onNewRequest }) {
                         <Typography sx={{ fontSize: '1.2rem'}}>No public identities available.</Typography>
                     ) : (
                         contexts.map((c) => 
-                            <List key={c.id} sx={{ width: '100%', maxWidth: 600, bgcolor: 'background.paper' }}>
+                            <List key={c.id} sx={{ width: '100%', maxWidth: 600, mx: 'auto', bgcolor: 'background.paper' }}>
                                 <ListItem 
                                     secondaryAction={ 
                                         <FormDialog 

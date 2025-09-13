@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 
 from .cryptographic_utils import encrypt, decrypt
-
+from .utils import to_bytes
 import uuid, json, logging
 
 logger = logging.getLogger('rest_api')
@@ -64,7 +64,9 @@ class Identity(models.Model):
         Decrypt the stored ciphertext with the holder's signature.
         """
         try:
-            decrypted = decrypt(self.enc_data, signature.encode(), self.salt)
+            cipertext = to_bytes(self.enc_data)
+            salt = to_bytes(self.salt)
+            decrypted = decrypt(cipertext, signature.encode(), salt)
             return json.loads(decrypted.decode())
         except Exception as e:
             logger.debug(f"decrypt failed: {e}")
