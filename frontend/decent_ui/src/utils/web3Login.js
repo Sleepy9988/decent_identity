@@ -1,8 +1,6 @@
 import { ethers, hashMessage } from "ethers";
-//import { recoverPublicKey } from "@ethersproject/signing-key";
 import { checkDIDProfile } from "./apiHelper";
 import VeramoAgentWrapper from "../services/veramo_agent";
-
 
 /**
  * handleWeb3AuthLogin

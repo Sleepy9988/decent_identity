@@ -21,6 +21,8 @@ export default function HeroSection() {
                 p: 0,
                 width: '100%',
                 height: { xs: '60vh', md: '75vh' },
+                minHeight: { xs: '60vh', md: '75vh' },
+                overflow: 'hidden',   
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -42,11 +44,12 @@ export default function HeroSection() {
                     height: '100%',
                     backgroundColor: 'rgba(183, 187, 201, 0.9)',
                     clipPath: { xs: 'polygon(0 0, 60% 0, 30% 100%, 0% 100%)', md: 'polygon(0 0, 50% 0, 25% 100%, 0% 100%)' },
-                    zIndex: 1,
+                    zIndex: 0,
+                    pointerEvents: 'none',
                 }}
             />
             {/* Foreground content */}
-            <Container maxWidth="lg" sx={{ textAlign: 'initial', zIndex: 2 }}>
+            <Container maxWidth="lg" sx={{ textAlign: 'initial', zIndex: 1 }}>
                 <Typography component="h1" gutterBottom sx={{ typography: { xs: 'h4', sm: 'h3', md: 'h2' } }}>
                     Welcome to DIDHub 
                 </Typography>
