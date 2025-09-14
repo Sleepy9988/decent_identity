@@ -72,8 +72,8 @@ SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "localhost,127.0.0.1")
 
 # CORS / CSRF
-CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "http://localhost:5173", "http://127.0.0.1:5173")
-CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORGINS", "http://localhost:5173", "http://127.0.0.1:5173")
+CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
+CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORGINS", "http://localhost:5173,http://127.0.0.1:5173")
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = list(default_headers) + ["authorization", "content-type"]
 
