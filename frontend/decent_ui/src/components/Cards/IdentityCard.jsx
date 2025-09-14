@@ -66,7 +66,7 @@ export default function IdentityCard ({ identity, onDeleted, onUpdated, onNotify
     }, []);
 
     return (
-        <Card sx={{ p: 2, backgroundColor: '#2d4963', borderRadius: 3, color: '#fff', minHeight: 300 }}>
+        <Card sx={{ p: { xs: 1.5, sm: 2 }, backgroundColor: '#2d4963', borderRadius: 3, color: '#fff', minHeight: 300 }}>
             <CardHeader
                 avatar={
                      avatar? (
@@ -74,8 +74,8 @@ export default function IdentityCard ({ identity, onDeleted, onUpdated, onNotify
                             src={avatar} 
                             alt="avatar" loading='lazy' 
                             style={{ 
-                                width: '80px', 
-                                height: '80px', 
+                                width: '64px',
+                                height: '64px',
                                 borderRadius: '50%', 
                                 objectFit: 'cover',
                                 marginRight: '16px' 
@@ -126,13 +126,13 @@ export default function IdentityCard ({ identity, onDeleted, onUpdated, onNotify
                 {entries.length > 0 ? (
                     <Stack spacing={1} sx={{width: '100%'}}>
                         {entries.map(([key, value]) => (
-                            <Box key={key} sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                            <Box key={key} sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: { xs:'column', sm:'row' } }}>
                                 <Typography
                                     variant="body1"
-                                    sx={{ fontWeight: 600, width: 200, textAlign: 'start', textTransform: 'capitalize', lineHeight: 2, mr: 2 }}>
+                                    sx={{ fontWeight: 600, width: { xs: '100%', sm: 180, md: 200 }, textAlign: 'start', textTransform: 'capitalize', lineHeight: 2, mr: { xs:0, sm:2 } }}>
                                     {key}:
                                 </Typography>
-                                <Typography variant="body1" sx={{ ml: 1, lineHeight: 2 }}>
+                                <Typography variant="body1" sx={{ ml: { xs:0, sm:1 }, lineHeight: 2, wordBreak: 'break-word' }}>
                                     {String(value)}
                                 </Typography>
                             </Box>

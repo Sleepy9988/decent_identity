@@ -73,7 +73,7 @@ const Dashboard = () => {
         <Box>
             {/* Page Title */}
             <Box component='section' sx={{ mt: 4}}>
-                <Typography variant='h3' gutterBottom align='left'>
+                <Typography sx={{ typography: { xs: 'h5', sm: 'h4', md: 'h3' }}} gutterBottom align='left'>
                     Dashboard
                 </Typography>  
             </Box>
@@ -81,30 +81,36 @@ const Dashboard = () => {
 
             {/* DID Info Card */}
             <Container component='section' sx={{ mt: 4}}>
-                <Card variant='outlined' sx={{ borderRadius: 3, p: 1, backgroundColor: '#1d2f40', mt: 5 }}>
+                 <Card variant='outlined' sx={{ borderRadius: 3, p: { xs: 1, sm: 1.5 }, backgroundColor: '#1d2f40', mt: 5 }}>
                     <CardContent>
-                        <Typography align='left' sx={{ fontSize: '1.5rem'}}>Logged in with address:</Typography>
+                        <Typography align='left' sx={{ fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' }}}>
+                            Logged in with address:
+                        </Typography>
                         <Box 
                             sx={{
                                 mt: 1,
-                                p: 2,
+                                p: { xs: 1.5, sm: 2 },
                                 backgroundColor: '#2d4963',
                                 borderRadius: 2, 
                                 fontFamily: 'monospace',
-                                fontSize: '1.5rem',
+                                fontSize: { xs: '1rem', sm: '1.2rem', md: '1.5rem' },
                                 display: 'flex',
-                                alignItems: 'center',
+                                flexDirection: { xs: 'column', sm: 'row' },
+                                alignItems: { xs: 'flex-start', sm: 'center' },
                                 justifyContent: 'space-between',
+                                gap: { xs: 1, sm: 0 },
+                                wordBreak: 'break-all'
                             }}
                         >
                             {did_display}
                             <ButtonGroup variant="outlined" aria-label="copy and QR button">
                                 {/* QR Code button */}
-                                <IconButton onClick={() => setQROpen(true)}>
+                                <IconButton size="small" onClick={() => setQROpen(true)}>
                                     <QrCode2Icon fontSize='medium'/>
                                 </IconButton>
                                 {/* Copy to clipboard button */}
                                 <IconButton 
+                                    size="small"
                                     aria-label='copy' 
                                     onClick={() => navigator.clipboard.writeText(did)}>
                                     <ContentCopyIcon fontSize='medium' />
@@ -121,7 +127,7 @@ const Dashboard = () => {
                 </Card>
 
                 {/* QR Code dialog */}
-                <Dialog open={qrOpen} onClose={() => setQROpen(false)}>
+                 <Dialog open={qrOpen} onClose={() => setQROpen(false)} fullWidth maxWidth="xs">
                     <DialogContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4}}>
                         <QRCodeCanvas value={did} size={240} />
                     </DialogContent>
@@ -132,7 +138,7 @@ const Dashboard = () => {
             
             {/* Identities carousel */}
             <Container maxWidth='xl' sx={{ mt: 5, mb: 4 }}>
-                <Typography variant='h5' sx={{textAlign: 'start', mb: 3}}>
+                 <Typography sx={{ typography: { xs: 'h6', sm: 'h5' }, textAlign: 'start', mb: 3 }}>
                     Existing Identities
                 </Typography>
                 {id && <CardCarousel identities={id} />}
@@ -145,25 +151,25 @@ const Dashboard = () => {
                 <Typography variant='h5' sx={{textAlign: 'start', mb: 3}}>
                     Ethereum Information
                 </Typography>
-                <TableContainer sx={{maxWidth: '600px', borderRadius: 3, overflow: 'hidden'}} component={Paper}>
+                <TableContainer sx={{ maxWidth: { xs: '100%', sm: 600 }, width: '100%', borderRadius: 3, overflow: 'hidden' }} component={Paper}>
                     <Table aria-label="ethereum information">
                         <TableBody>
                             <TableRow>
-                                <TableCell sx={{ fontSize: '1.1rem', fontWeight: 500 }}>ETH Balance</TableCell>
-                                <TableCell sx={{ fontSize: '1.1rem' }}>{formattedBalance}</TableCell>
+                                <TableCell sx={{ fontSize: { xs: '1rem', sm: '1.1rem' }, fontWeight: 500 }}>ETH Balance</TableCell>
+                                <TableCell sx={{ fontSize: { xs: '1rem', sm: '1.1rem' } }}>{formattedBalance}</TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell sx={{ fontSize: '1.1rem', fontWeight: 500 }}>Number of Transactions</TableCell>
-                                <TableCell sx={{ fontSize: '1.1rem' }}>{meta.transactions}</TableCell>
+                                <TableCell sx={{ fontSize: { xs: '1rem', sm: '1.1rem' }, fontWeight: 500 }}>Number of Transactions</TableCell>
+                                <TableCell sx={{ fontSize: { xs: '1rem', sm: '1.1rem' } }}>{meta.transactions}</TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell sx={{ fontSize: '1.1rem', fontWeight: 500 }}>Network</TableCell>
-                                <TableCell sx={{ fontSize: '1.1rem' }}>{meta.network.name.toUpperCase()}</TableCell>
+                                <TableCell sx={{ fontSize: { xs: '1rem', sm: '1.1rem' }, fontWeight: 500 }}>Network</TableCell>
+                                <TableCell sx={{ fontSize: { xs: '1rem', sm: '1.1rem' } }}>{meta.network.name.toUpperCase()}</TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell sx={{ fontSize: '1.1rem', fontWeight: 500 }}>Valid DID (Resolvable)</TableCell>
+                                <TableCell sx={{ fontSize: { xs: '1rem', sm: '1.1rem' }, fontWeight: 500 }}>Valid DID (Resolvable)</TableCell>
                                 <TableCell>
-                                    <Checkbox checked={isResolvable} />
+                                    <Checkbox checked={isResolvable} size="small" />
                                 </TableCell>
                             </TableRow>
                         </TableBody>

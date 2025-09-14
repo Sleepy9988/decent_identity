@@ -17,10 +17,10 @@ export default function HeroSection() {
         <Box 
             sx={{
                 position: 'relative',
-                top: 70,
-                padding: 0,
-                width: '100vw',
-                height: '75vh',
+                top: { xs: 56, sm: 70 }, 
+                p: 0,
+                width: '100%',
+                height: { xs: '60vh', md: '75vh' },
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -41,19 +41,19 @@ export default function HeroSection() {
                     width: '100%',
                     height: '100%',
                     backgroundColor: 'rgba(183, 187, 201, 0.9)',
-                    clipPath: 'polygon(0 0, 50% 0, 25% 100%, 0% 100%)',
+                    clipPath: { xs: 'polygon(0 0, 60% 0, 30% 100%, 0% 100%)', md: 'polygon(0 0, 50% 0, 25% 100%, 0% 100%)' },
                     zIndex: 1,
                 }}
             />
             {/* Foreground content */}
             <Container maxWidth="lg" sx={{ textAlign: 'initial', zIndex: 2 }}>
-                <Typography variant="h2" component="h1" gutterBottom>
+                <Typography component="h1" gutterBottom sx={{ typography: { xs: 'h4', sm: 'h3', md: 'h2' } }}>
                     Welcome to DIDHub 
                 </Typography>
-                <Typography variant="h4">
+                <Typography sx={{ typography: { xs: 'subtitle1', sm: 'h6', md: 'h4' } }}>
                     Decentralized Identity & Profile Management
                 </Typography>
-                <Container sx={{ pt: 5}}>
+                <Container sx={{ pt: { xs: 3, sm: 5 } }}>
                     <ConnectWeb3AuthButton />
                 </Container>
             </Container>

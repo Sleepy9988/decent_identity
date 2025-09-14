@@ -20,6 +20,11 @@ const DisconnectWeb3AuthButton = () => {
             startIcon={<LogoutIcon />}
             color="error"
             size="large"
+            sx={{
+                px: { xs: 2, sm: 3 },
+                py: { xs: 1.25, sm: 2 },
+                width: { xs: '100%', sm: 'auto' }
+            }}
             onClick={handleLogout} 
         >
             Disconnect

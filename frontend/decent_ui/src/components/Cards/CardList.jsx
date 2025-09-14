@@ -114,7 +114,14 @@ export default function CardList({ identities }) {
     return (
         <Box>
             {/* Toolbar with select-all and bulk actions */}
-            <Box sx={{display: 'flex', flexDirection: 'row', justifyContent:'start', mt: 2, maxWidth: '1100px'}}>
+            <Box sx={{
+                display: 'flex', 
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'stretch', sm: 'center' },
+                gap: { xs: 1.5, sm: 0 },
+                mt: 2, 
+                maxWidth: '1100px'
+            }}>
                 <Box>
                     <FormControlLabel
                         label='Select all'
@@ -125,11 +132,17 @@ export default function CardList({ identities }) {
                         />}
                     />
                 </Box>
-                <Box sx={{flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+                <Box sx={{
+                    flexGrow: 1, 
+                    display: 'flex', 
+                    justifyContent: { xs: 'flex-start', sm: 'center' },
+                    overflowX: { xs: 'auto', sm: 'visible' } 
+                }}
+                >
                     <ButtonGroup variant='outlined' disabled={!someSelected && !allSelected}>
-                        <Button startIcon={<DownloadIcon />} onClick={() => handleDownload('Identities', identities, [...selected])}>Download</Button>
-                        <Button startIcon={<ShareIcon />} disabled={true}>Share</Button>
-                        <Button startIcon={<DeleteIcon />} onClick={handleMassDelete}>Delete</Button>
+                        <Button size="small" startIcon={<DownloadIcon />} onClick={() => handleDownload('Identities', identities, [...selected])}>Download</Button>
+                        <Button size="small" startIcon={<ShareIcon />} disabled={true}>Share</Button>
+                        <Button size="small" startIcon={<DeleteIcon />} onClick={handleMassDelete}>Delete</Button>
                     </ButtonGroup>
                 </Box>
                 <AlertDialog
@@ -144,12 +157,12 @@ export default function CardList({ identities }) {
             <SnackbarAlert msg={snackMsg} open={snackOpen} setOpen={setSnackOpen} type={snackType} />
 
             {/* List of identities with checkboxes */}
-            <Box sx={{ mt: 5, mb: 5, maxWidth: '1000px', display: 'flex', flexDirection: 'column', gap: 3}}>
+            <Box sx={{ mt: 5, mb: 5, maxWidth: '1000px', width:'100%', display: 'flex', flexDirection: 'column', gap: 3}}>
             {identities.map((identity) => {
                 const checked = selected.has(identity.id);
                 return (
-                <Box key={identity.id} sx={{display: 'flex', gap: 2, alignItems: 'center'}}>
-                    <Box sx={{ width: 40, display: 'flex', justifyContent: 'center', pt: 1}}>
+                <Box key={identity.id} sx={{display: 'flex', flexDirection:{ xs:'column', sm:'row' }, gap: 2, alignItems: { xs:'stretch', sm:'center' }}}>
+                    <Box sx={{ width: { xs: '100%', sm: 40 }, display: 'flex', justifyContent: { xs:'flex-start', sm:'center' }, pt: { xs: 0, sm: 1 }}}>
                         <FormControlLabel 
                             control={
                                 <Checkbox 

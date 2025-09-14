@@ -73,7 +73,18 @@ const SubmitVCButton = ({ payload, onSuccess, avatarFile, setAvatarFile, setOpen
     };
 
     return (
-        <Button variant="outlined" endIcon={<CreateIcon />} onClick={handleClick} color="success" size="large">
+        <Button 
+            variant="outlined" 
+            endIcon={<CreateIcon />} 
+            onClick={handleClick} 
+            color="success" 
+            size="large"
+            sx={{
+                px: { xs: 2, sm: 3 },
+                py: { xs: 1.25, sm: 2 },
+                width: { xs: '100%', sm: 'auto' }
+            }}
+        >
             {pending ? "Creating..." : "Create"}
         </Button>
     );

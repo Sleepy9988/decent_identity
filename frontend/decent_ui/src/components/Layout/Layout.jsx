@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import SidebarLeft from './Sidebar';
@@ -19,6 +19,9 @@ import { useLocation } from 'react-router-dom';
  */
 
 const Layout = ({ children }) => {
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const handleDrawerToggle = () => setMobileOpen((o) => !o);
+
     const location = useLocation();
     const showSidebar = location.pathname !== '/'; 
     const isLoginPage = location.pathname === '/';
@@ -31,8 +34,10 @@ const Layout = ({ children }) => {
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh' }}>
             <CssBaseline />
-            <Header loggedIn={loggedIn}/>
-            {showSidebar && <SidebarLeft />}
+            <Header loggedIn={loggedIn} onMenuClick={handleDrawerToggle} />
+            {showSidebar && (
+                <SidebarLeft mobileOpen={mobileOpen} onClose={handleDrawerToggle}/>
+            )}
             <Box 
                 component="main"
                 sx={{
@@ -47,7 +52,7 @@ const Layout = ({ children }) => {
                     {isLoginPage ? (
                         children
                     ) : (
-                    <Container maxWidth={false} align='center'>{children}</Container>
+                    <Container maxWidth={false} align='center' sx={{ px: { xs: 2, sm: 3, md: 4 } }}>{children}</Container>
                     )}
                 </Box>
                 <Footer />

@@ -35,12 +35,12 @@ const Identity = () => {
     return (
         <Box>
             {/* Page Header + toggle button */}
-            <Box component='section' sx={{ mt: 4, display: 'flex', justifyContent: 'space-between'}}>
-                <Typography variant='h3' gutterBottom align='left'>
+            <Box component='section' sx={{ mt: 4, display: 'flex', justifyContent: 'space-between', flexDirection: { xs:'column', sm:'row' }, alignItems:{ xs:'flex-start', sm:'center' }, gap:{ xs:2, sm:0 }}}>
+                <Typography sx={{ typography: { xs: 'h5', sm: 'h4', md: 'h3' }}} gutterBottom align='left'>
                     Identities
                 </Typography> 
                 <Tooltip title='Add new Identity' placement='right' arrow slotProps={{tooltip: { sx: { fontSize: '1rem'}}}}>
-                    <Fab color='primary' aria-label='add' onClick={handleChange}>
+                    <Fab color='primary' aria-label='add' onClick={handleChange} sx={{ alignSelf: { xs:'flex-start', sm:'auto' } }}>
                         {checked ? <CloseIcon /> : <AddIcon />}
                     </Fab>
                 </Tooltip>

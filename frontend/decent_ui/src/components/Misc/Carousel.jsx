@@ -28,7 +28,15 @@ export default function CardCarousel({ identities }) {
             navButtonsProps={{style: {backgroundColor: '#4A87D0'}}}>
             
             {identities.map((identity) => (
-                <Box key={identity.id} sx={{ px: 2, maxWidth: '1200px' }}>
+                <Box 
+                    key={identity.id} 
+                    sx={{ 
+                        px: { xs: 1, sm: 2 }, 
+                        maxWidth: 1200,
+                        width: '100%',
+                        mx: 'auto'
+                    }}
+                >
                     <IdentityCard identity={identity} />
                 </Box>
             ))}

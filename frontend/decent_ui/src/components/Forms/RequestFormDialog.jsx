@@ -49,7 +49,7 @@ export default function FormDialog({ requested_already, onSubmitRequest }) {
                     Request
                 </Button>
             )}
-            <Dialog open={open} onClose={handleClose}>
+            <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
                 <DialogTitle>Request Access</DialogTitle>
                 <DialogContent>
                     <DialogContentText>

@@ -235,7 +235,7 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
     return (
         <Box sx={{mt: 5}}>
             {requests.map((r) => (
-                <Card key={r.id} sx={{ p: 2, color: '#fff', maxWidth: 1200, mb: 3 }}>
+                <Card key={r.id} sx={{ p: { xs: 1.5, sm: 2 }, color: '#fff', maxWidth: 1200, width: '100%', mx: 'auto', mb: 3 }}>
                     <CardHeader
                         title={<Typography variant='h6' gutterBottom sx={{ textAlign: 'start'}}><b>Requested Context:</b> {r.context}</Typography>}
                         subheader={<Typography sx={{ color: 'text.secondary', textAlign: 'start' }}>Requestor: {r.requestor_did}</Typography>}
@@ -252,7 +252,9 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                         }
                     />
                     <CardContent>
-                        <Typography variant="body1" sx={{ textAlign: 'start', fontSize: '1.2rem'}}> <b>Purpose:</b><br />{r.purpose}</Typography>
+                        <Typography variant="body1" sx={{ textAlign: 'start', fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' }}}>
+                            <b>Purpose:</b><br />{r.purpose}
+                        </Typography>
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2}}>
                             <Typography sx={{ textAlign: 'end', color: '#aaa', fontSize: 'small'}}>
                                 Request Date: {r.created_at? new Date(r.created_at).toLocaleString() : '-'}<br/>
@@ -264,10 +266,10 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
 
                     {/* Pending state actions */}
                     {r.status === 'Pending' && (
-                        <CardActions>
+                        <CardActions sx={{ flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: { xs: 1, sm: 0 } }}>
                             {canDecide ? (
                                 <>
-                                    <Button variant="outlined" size="medium" color="success"
+                                    <Button variant="outlined" size="small" color="success"
                                         onClick={() => handleClickOpen('ap', r.id)}
                                     >
                                         Approve
@@ -286,7 +288,7 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                                         </DialogActions>
                                     </Dialog>
 
-                                    <Button variant="outlined" size="medium" color="error" 
+                                    <Button variant="outlined" size="small" color="error" 
                                         onClick={() => handleClickOpen('dc', r.id)}
                                     >
                                         Decline
@@ -320,7 +322,7 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                                     </Dialog>
                                 </>
                             ) : ( 
-                                <Button variant="outlined" size="medium" color="primary" onClick={() => handleCancelClick(r.id)}>Cancel Request</Button>
+                                <Button variant="outlined" size="small" color="primary" onClick={() => handleCancelClick(r.id)}>Cancel Request</Button>
                             )}
                         </CardActions>
                     )}
@@ -328,12 +330,12 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                     {/* Approved state actions */}
                     {r.status === 'Approved' && (
                         <>
-                        <CardActions>
+                         <CardActions sx={{ flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: { xs: 1, sm: 0 } }}>
                             {r.expires_at && new Date(r.expires_at) > new Date() ? (
                                 !canDecide ? (
-                                    <Button variant="outlined" size="medium" color="warning" onClick={() => handleAccessApprovedData(r.id)}>Access Data</Button>
+                                    <Button variant="outlined" size="small" color="warning" onClick={() => handleAccessApprovedData(r.id)}>Access Data</Button>
                                 ) : (
-                                    <Button variant="outlined" size="medium" color="warning" onClick={() => handleRevoke(r.id)}>Revoke</Button>
+                                    <Button variant="outlined" size="small" color="warning" onClick={() => handleRevoke(r.id)}>Revoke</Button>
                                 )
                             ) : (
                                 <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%'}}>

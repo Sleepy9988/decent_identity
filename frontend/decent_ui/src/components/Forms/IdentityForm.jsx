@@ -73,9 +73,9 @@ export default function IdentityForm() {
     }, [context, description, fields]);
 
     return (
-        <Box component="form" sx={{ px: 2, mt: 5, mb: 5 }} noValidate autoComplete="off">
+        <Box component="form" sx={{ px: { xs: 1.5, sm: 2 }, mt: 5, mb: 5 }} noValidate autoComplete="off">
             {/* Context + Description */}
-            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: 4, alignItems: 'flex-start' }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs:'column', md:'row' }, justifyContent: 'space-between', gap: { xs: 3, md: 4 }, alignItems: 'flex-start' }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     <Box>
                         <InputLabel sx={{ mb: 1, color:'white', fontSize: '1.5rem', textAlign: 'left' }}>Context</InputLabel>
@@ -86,7 +86,7 @@ export default function IdentityForm() {
                             onChange={(e) => setContext(e.target.value)}
                             id="outlined"
                             label="Required"
-                            sx={{ width: 500, maxWidth: 500 }}
+                            sx={{ width: { xs: '100%', sm: 500 }, maxWidth: { xs: '100%', sm: 500 } }}
                         />
                     </Box>
                     <Box>
@@ -99,17 +99,17 @@ export default function IdentityForm() {
                             onChange={(e) => setDescription(e.target.value)}
                             label='Description'
                             variant='outlined'
-                            sx={{ width: 500, maxWidth: 500 }}
+                            sx={{ width: { xs: '100%', sm: 500 }, maxWidth: { xs: '100%', sm: 500 } }}
                         />  
                     </Box>
                 </Box>
 
                 {/* Avatar upload + preview */}
-                <Box>
+                <Box sx={{ alignSelf: { xs: 'stretch', md: 'auto' } }}>
                     <InputLabel sx={{ mb: 1, color:'white', fontSize: '1.5rem', textAlign: 'left'}}>Avatar</InputLabel>
                     <Box sx={{ 
-                        width: 250, 
-                        height: 250, 
+                        width: { xs: 180, sm: 220, md: 250 },
+                        height: { xs: 180, sm: 220, md: 250 }, 
                         border: '2px dashed #ccc',
                         display: 'flex', 
                         justifyContent: 'center', 
@@ -138,7 +138,7 @@ export default function IdentityForm() {
 
             {/* Dynamic subject fields */}      
             {fields.map((field, index) => (
-                <Box key={field.id} sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2, mt: 3 }}>
+                <Box key={field.id} sx={{ display: 'flex', alignItems: 'center', flexDirection:{ xs:'column', md:'row' }, mb: 2, gap: 2, mt: 3, width:'100%' }}>
                     <Box>
                         <InputLabel sx={{ mb: 0.5, color:'white', fontSize: '1.5rem', textAlign: 'left' }}>Key {index + 1}</InputLabel>
                         <TextField
@@ -148,7 +148,8 @@ export default function IdentityForm() {
                             placeholder="Enter Key"
                             variant='outlined'
                             size='small'
-                            sx={{ width: '300px' }}
+                            fullWidth
+                            sx={{ width: { xs: '100%', sm: 300 } }}
                         />
                     </Box>
                     <Box>
@@ -164,7 +165,7 @@ export default function IdentityForm() {
                                     handleUpdate(index, 'value', val.toDate().toISOString());
                                 }}
                                 format="DD/MM/YYYY"
-                                sx={{ width: '500px' }}
+                                sx={{ width: { xs: '100%', sm: 500 } }}
                             />
                             
                             ) : (
@@ -175,11 +176,12 @@ export default function IdentityForm() {
                                 placeholder="Enter Value"
                                 variant='outlined'
                                 size='small'
-                                sx={{ width: '500px'}}
+                                fullWidth
+                                sx={{ width: { xs: '100%', sm: 500 } }}
                             />
                         )}
                     </Box>
-                    <Box sx={{ mt: 5, display: 'flex', gap: 1}}>
+                     <Box sx={{ mt: { xs: 1, md: 5 }, display: 'flex', gap: 1, alignSelf: { xs: 'flex-start', md: 'center' } }}>
                         {/* Toggle field type between date and string */}
                         <ToggleButton 
                             value='date' 

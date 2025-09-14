@@ -4,6 +4,8 @@ import { Box, Typography, Toolbar, Link } from "@mui/material";
 import { Link as RouterLink } from 'react-router-dom';
 import { DisconnectWeb3AuthButton } from '../Buttons';
 import NotificationPopover  from '../Misc/NotificationPopover';
+import IconButton from '@mui/material/IconButton';
+import MenuIcon from '@mui/icons-material/Menu';
 
 /**
  * Application top navigation bar.
@@ -14,15 +16,27 @@ import NotificationPopover  from '../Misc/NotificationPopover';
  * - loggedIn: boolean, whether to show user controls
  */
 
-export default function Header({ loggedIn }) {
+export default function Header({ loggedIn, onMenuClick }) {
   return (
     <AppBar position='fixed' sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: '#15222e', py:2 }}>
       <Toolbar>
+        <IconButton
+          onClick={onMenuClick}
+          edge="start"
+          color='inherit'
+          sx={{ mr: 1.5, display: { md: 'none' } }}
+          aria-label='open navigation'
+        >
+          <MenuIcon />
+        </IconButton>
         {/* Logo + brand name */}
         <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
             <Link component={RouterLink} to="/" underline="none" color="inherit" sx={{ display: 'flex', alignItems: 'center' }}>
-              <img src='/assets/logo.png' alt="DIDHub Logo" style={{ height: 60, marginRight: 12 }} />
-              <Typography variant="h4" noWrap component="div">
+            <Box component="img"
+              src='/assets/logo.png' 
+              alt="DIDHub Logo" 
+              sx={{ height: { xs: 40, sm: 50, md: 60 }, mr: { xs: 1, sm: 1.5 } }} />
+              <Typography noWrap component="div" sx={{ typography: { xs: 'h6', sm: 'h5', md: 'h4' } }}>
                 DIDHub
               </Typography>
             </Link>

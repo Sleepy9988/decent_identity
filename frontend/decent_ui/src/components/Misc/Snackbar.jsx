@@ -34,7 +34,7 @@ export default function SnackbarAlert({ open, setOpen, msg, type }) {
                 onClose={handleClose}
                 severity={type}
                 variant="filled"
-                sx={{ width: '100%'}}
+                sx={{ width: '100%', maxWidth: { xs: '90vw', sm: 'unset' }, wordBreak: 'break-word' }}
             >
                 {msg}
             </Alert>

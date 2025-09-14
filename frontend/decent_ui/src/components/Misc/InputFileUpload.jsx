@@ -38,6 +38,7 @@ export default function InputFileUpload({ onChange = () => {}, accept = 'image/*
             variant="contained"
             tabIndex={-1}
             startIcon={<CloudUploadIcon />}
+            sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1, sm: 1.25 }, width: { xs: '100%', sm: 'auto' } }}
         >
             Upload file
             <VisuallyHiddenInput

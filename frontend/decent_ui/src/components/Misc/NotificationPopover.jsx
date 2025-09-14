@@ -31,7 +31,7 @@ export default function NotificationPopover() {
             {/* Bell icon with badge */}
             <Badge 
                 color='warning' 
-                sx={{mr: 10}} 
+                sx={{ mr: { xs: 2, sm: 4, md: 10 } }}
                 badgeContent={notifications.length}
                 aria-owns={open ? 'mouse-over-popover' : undefined}
                 aria-haspopup="true"
@@ -53,7 +53,16 @@ export default function NotificationPopover() {
                 anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
                 transformOrigin={{vertical: 'top', horizontal: 'left'}}
             >
-                <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper', p: 5 }}>
+                <Box 
+                    sx={{ 
+                        width: '100%', 
+                        maxWidth: { xs: '85vw', sm: 360 },
+                        maxHeight: { xs: '60vh', sm: '70vh' },
+                        overflowY: 'auto',
+                        bgcolor: 'background.paper', 
+                        p: { xs: 2, sm: 3, md: 5 } 
+                    }}
+                >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                         <Typography variant="subtitle1">Notifications</Typography>
                         {!!notifications.length && (

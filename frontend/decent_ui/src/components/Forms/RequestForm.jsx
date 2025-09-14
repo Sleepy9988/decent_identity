@@ -173,9 +173,9 @@ export default function RequestForm({ created_reqs, onNewRequest }) {
                                     }    
                                 > 
                                     <ListItemAvatar>
-                                        <Avatar>
+                                        <Avatar sx={{ width: { xs: 40, sm: 56 }, height: { xs: 40, sm: 56 } }}>
                                             {c.avatar ?  
-                                                ( <img src={c.avatar} alt="avatar" loading='lazy' style={{ width: '80px', height: '80px' }} />) 
+                                                (<img src={c.avatar} alt="avatar" loading='lazy' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />)
                                                 : (<PersonIcon />)
                                             }
                                         </Avatar>

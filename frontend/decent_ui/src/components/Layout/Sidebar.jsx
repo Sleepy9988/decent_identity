@@ -5,6 +5,8 @@ import PermIdentityIcon from '@mui/icons-material/PermIdentity';
 import InboxIcon from '@mui/icons-material/Inbox';
 import { NavLink } from 'react-router-dom';
 import { useWeb3AuthConnect } from "@web3auth/modal/react";
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const drawerWidth = 320;
 
@@ -25,29 +27,23 @@ const menuItems = [
  * - MUI Drawer with fixed width
  */
 
-export default function SidebarLeft() {
+export default function SidebarLeft({ mobileOpen = false, onClose = () => {} }) {
   const { connectorName } = useWeb3AuthConnect();
-  return (
-    <Drawer
-      variant="permanent"
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        [`& .MuiDrawer-paper`]: {
-          width: drawerWidth,
-          boxSizing: 'border-box',
-        },
-      }}
-    >
+  const theme = useTheme();
+  const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
+  
+  const content = (
+    <>
       <Toolbar />
-      <Box 
+      <Box
         sx={{ 
           overflow: 'auto',
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
           pt: 10
-        }}>
+        }}
+      >
         {/* Navigation links */}
         <Typography variant="h5" align='center' gutterBottom>
           Navigation
@@ -80,12 +76,17 @@ export default function SidebarLeft() {
         {/* Push footer to bottom */}
         <Box sx={{ flexGrow: 1 }} />
         <Divider />
-
+        
         {/* Connection info */}
         <List>
           <ListItem key="connector">
             <ListItemIcon>
-              <img src='/assets/logo.png' alt="DIDHub Logo" style={{ height: 40 }} />
+              <Box
+                component="img"
+                src="/assets/logo.png"
+                alt="DIDHub Logo"
+                sx={{ height: 40 }}
+              />
             </ListItemIcon>
             <ListItemText 
               primary={"Connected with"} 
@@ -95,6 +96,40 @@ export default function SidebarLeft() {
           </ListItem>
         </List>
       </Box>
+    </>
+  );
+
+  return isMdUp ? ( 
+    <Drawer
+      variant='permanent'
+      open
+      sx={{
+        display: { xs: 'none', md: 'block' },
+        width: drawerWidth,
+        flexShrink: 0,
+        '& .MuiDrawer-paper': {
+          width: drawerWidth,
+          boxSizing: 'border-box',
+        },
+      }}
+    >
+      { content }
+    </Drawer>
+  ) : (
+    <Drawer
+      variant='temporary'
+      open={mobileOpen}
+      onClose={onClose}
+      ModalProps={{ keepMounted: true }}
+      sx={{
+        display: { xs: 'block', md: 'none' },
+        '& .MuiDrawer-paper': {
+          width: drawerWidth, 
+          boxSizing: 'border-box',
+        },
+      }}
+    >
+      { content }
     </Drawer>
   );
 }

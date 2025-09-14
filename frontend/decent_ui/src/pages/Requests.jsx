@@ -62,7 +62,7 @@ const Requests = () => {
         return ( 
             <Autocomplete 
                 options={STATUS_OPTIONS}
-                sx={{ width: 300, mt: 5 }}
+                sx={{ width: { xs: '100%', sm: 300 }, mt: 5 }}
                 renderInput={(params) => <TextField { ...params} label="Status" />}
                 value={status}
                 onChange={(e, newStatus) => {
@@ -102,8 +102,8 @@ const Requests = () => {
     return (
         <Box>
             {/* Page Header */}
-            <Box component='section' sx={{ mt: 4, display: 'flex', justifyContent: 'space-between'}}>
-                <Typography variant="h3" gutterBottom align="left">
+            <Box component='section' sx={{ mt: 4, display: 'flex', justifyContent: 'space-between', flexDirection:{ xs:'column', sm:'row' }, alignItems:{ xs:'flex-start', sm:'center' }, gap:{ xs:2, sm:0 }}}>
+                <Typography sx={{ typography: { xs: 'h5', sm: 'h4', md: 'h3' }}} gutterBottom align="left">
                     Requests
                 </Typography> 
             </Box>
@@ -112,10 +112,17 @@ const Requests = () => {
 
             {/* Tabs */}
             <Container component='section' sx={{ mt: 4}}>
-                <Tabs value={value} onChange={handleChange} centered>
-                    <Tab label='New Request' sx={{fontSize: '1rem', mr: 5}} value="1" />
-                    <Tab label='Received Requests' sx={{fontSize: '1rem', mr: 5}} value="2" />
-                    <Tab label='Created Requests' sx={{fontSize: '1rem'}} value="3" />
+                <Tabs 
+                    value={value} 
+                    onChange={handleChange} 
+                    centered
+                    scrollButtons
+                    allowScrollButtonsMobile
+                    aria-label="requests tabs"
+                >
+                    <Tab label='New Request' sx={{ fontSize: { xs: '.95rem', sm: '1rem' }, mr: { sm: 5 }}} value="1" />
+                    <Tab label='Received Requests' sx={{ fontSize: { xs: '.95rem', sm: '1rem' }, mr: { sm: 5 }}} value="2" />
+                    <Tab label='Created Requests' sx={{ fontSize: { xs: '.95rem', sm: '1rem' }}} value="3" />
                 </Tabs>
 
                 {/* Tab 1: New Request */}

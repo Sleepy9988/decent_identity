@@ -78,7 +78,11 @@ const ConnectWeb3AuthButton = () => {
             variant="contained" 
             startIcon={<LoginIcon />}
             size="large"
-            sx={{ p: 2}}
+            sx={{
+                px: { xs: 2, sm: 3 },
+                py: { xs: 1.25, sm: 2 },
+                width: { xs: '100%', sm: 'auto' }
+            }}
             onClick={handleClick}
             disabled={loading}
         >
