@@ -17,13 +17,12 @@ export default function HeroSection() {
         <Box 
             sx={{
                 position: 'relative',
-                top: { xs: 56, sm: 70 }, 
                 p: 0,
                 width: '100%',
-                height: { xs: '60vh', md: '75vh' },
                 minHeight: { xs: '60vh', md: '75vh' },
                 overflow: 'hidden',   
                 display: 'flex',
+                pb: { xs: 2, sm: 3 },
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundImage: `linear-gradient(to right,rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.7)), url('/assets/hero.png')`,

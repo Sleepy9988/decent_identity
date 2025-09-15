@@ -61,7 +61,7 @@ class VeramoAgentWrapper {
                         [didProviderKey]: new EthrDIDProvider({
                             defaultKms: 'web3',
                             network: networkName,
-                            rpcUrl: `https://${networkName}.infura.io/v3/` + infuraProjectId,
+                            rpcUrl: `https://${networkName}.infura.io/v3/${infuraProjectId}`,
                             identifier: address,
                             signer: this.signer
                         }),

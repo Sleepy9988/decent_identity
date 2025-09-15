@@ -20,22 +20,26 @@ export default function Header({ loggedIn, onMenuClick }) {
   return (
     <AppBar position='fixed' sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: '#15222e', py:2 }}>
       <Toolbar>
-        <IconButton
-          onClick={onMenuClick}
-          edge="start"
-          color='inherit'
-          sx={{ mr: 1.5, display: { md: 'none' } }}
-          aria-label='open navigation'
-        >
-          <MenuIcon />
-        </IconButton>
+        {loggedIn ? 
+          (
+            <IconButton
+              onClick={onMenuClick}
+              edge="start"
+              color='inherit'
+              sx={{ mr: 1.5, display: { md: 'none' } }}
+              aria-label='open navigation'
+            >
+              <MenuIcon />
+            </IconButton>
+          ): <></>
+        }
         {/* Logo + brand name */}
         <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
             <Link component={RouterLink} to="/" underline="none" color="inherit" sx={{ display: 'flex', alignItems: 'center' }}>
             <Box component="img"
               src='/assets/logo.png' 
               alt="DIDHub Logo" 
-              sx={{ height: { xs: 40, sm: 50, md: 60 }, mr: { xs: 1, sm: 1.5 } }} />
+              sx={{ height: { xs: 30, sm: 40, md: 50 }, mr: { xs: 1, sm: 1.5 } }} />
               <Typography noWrap component="div" sx={{ typography: { xs: 'h6', sm: 'h5', md: 'h4' } }}>
                 DIDHub
               </Typography>

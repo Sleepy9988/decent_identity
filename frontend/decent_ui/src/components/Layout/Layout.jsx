@@ -6,7 +6,7 @@ import SidebarLeft from './Sidebar';
 import { useAgent } from '../../services/AgentContext';
 import { useWeb3AuthConnect } from "@web3auth/modal/react";
 import { Box, Toolbar, Container, CssBaseline } from "@mui/material";
-import { useLocation } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 
 /**
  * Global page layout wrapper.
@@ -30,6 +30,10 @@ const Layout = ({ children }) => {
     const { isAuthenticated } = useAgent();
 
     const loggedIn = isConnected && isAuthenticated;
+
+    if (!loggedIn && !isLoginPage) {
+        return <Navigate to="/" replace />
+    }
 
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh' }}>
