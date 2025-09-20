@@ -30,7 +30,10 @@ export default function DataDialog({ open, dataToDisplay, onClose }) {
             maxWidth="sm"
             slotProps={{
                 paper: {
-                    sx: { minWidth: '100%' }
+                    sx: { 
+                        width: '100%',
+                        maxWidth: 820,
+                    }
             },
         }}
         >

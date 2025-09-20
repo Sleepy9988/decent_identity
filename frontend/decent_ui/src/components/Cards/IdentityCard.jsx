@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Box, Fab, Card, Typography, CardContent, Divider, Tooltip, CardHeader, Stack } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -6,6 +6,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { deleteIdentities, updateIdentity } from "../../utils/apiHelper";
 import { useLocation } from "react-router-dom";
 import AlertDialog from '../Misc/AlertDialog';
+import Avatar from '@mui/material/Avatar';
 
 /**
  * IdentityCard 
@@ -23,6 +24,14 @@ export default function IdentityCard ({ identity, onDeleted, onUpdated, onNotify
     const [updating, setUpdating] = useState(false);
     const location = useLocation();
     const entries = decrypted_data ? Object.entries(decrypted_data) : [];
+
+    const avatarSrc = useMemo(() => {
+        if (!avatar) return '';
+        let url = String(avatar);
+        url = url.replace(/^https?:\/\/(www\.)?smxnr\.com/i, '');
+        if (url.startsWith('/media/')) return url;
+        return `/media/${url.replace(/^\/?media\/?/, '')}`;
+    }, [avatar]);
 
     // Toggle active/inactive state of identity.
     const handleToggleVisibility = useCallback(async () => {
@@ -69,16 +78,18 @@ export default function IdentityCard ({ identity, onDeleted, onUpdated, onNotify
         <Card sx={{ p: { xs: 1.5, sm: 2 }, backgroundColor: '#2d4963', borderRadius: 3, color: '#fff', minHeight: 300 }}>
             <CardHeader
                 avatar={
-                     avatar? (
-                        <img 
-                            src={avatar} 
-                            alt="avatar" loading='lazy' 
-                            style={{ 
-                                width: '64px',
-                                height: '64px',
-                                borderRadius: '50%', 
-                                objectFit: 'cover',
-                                marginRight: '16px' 
+                     avatarSrc ? (
+                        <Avatar 
+                            src={avatarSrc} 
+                            alt="avatar"  
+                            sx={{ width: 64, height: 64 }}
+                            slotProps={{ 
+                                img: {
+                                    loading: 'eager',
+                                    decoding: 'async',
+                                    onError: (e) => { e.currentTarget.style.outline = '2px solid red'; }
+                                }
+                                
                             }}
                         />
                     ) : null

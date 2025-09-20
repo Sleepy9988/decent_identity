@@ -245,7 +245,7 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                                 <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                                     <Typography sx={{ ml: 1, textTransform: 'capitalize', fontWeight: 'bold' }}>{r.status}</Typography>
                                     <Typography variant="subtitle2" sx={{ color: '#aaa', fontSize: 'small' }}>
-                                        {r.approved_at? new Date(r.approved_at).toLocaleString() : '-'}
+                                        {r.approved_at? new Date(r.approved_at).toLocaleString() : new Date(r.updated_at).toLocaleString()}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -255,6 +255,11 @@ export default function RequestCardList({ requests, canDecide, onUpdate }) {
                         <Typography variant="body1" sx={{ textAlign: 'start', fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' }}}>
                             <b>Purpose:</b><br />{r.purpose}
                         </Typography>
+                        {r.status === 'Declined' &&
+                            <Typography variant="body1" sx={{ mt: 2, textAlign: 'start', fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' }}}>
+                                <b>Declined because:</b><br />{r.reason}
+                            </Typography>
+                        }
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2}}>
                             <Typography sx={{ textAlign: 'end', color: '#aaa', fontSize: 'small'}}>
                                 Request Date: {r.created_at? new Date(r.created_at).toLocaleString() : '-'}<br/>

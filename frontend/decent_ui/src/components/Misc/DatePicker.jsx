@@ -27,7 +27,7 @@ export default function DatePickerComponent({value, onChange}) {
                 onChange={onChange}
                 slotProps={{ textField: { fullWidth: true } }}
                 disablePast
-                views={['year', 'month', 'day']}
+                views={['year', 'month', 'day', 'hours', 'minutes']}
             />
         </Box>
     </LocalizationProvider>

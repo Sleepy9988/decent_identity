@@ -166,6 +166,8 @@ class RequestListSerializer(serializers.ModelSerializer):
             'created_at', 
             'expires_at', 
             'approved_at',
+            'reason',
+            'updated_at'
         ]
 
 
@@ -274,7 +276,7 @@ class RequestUpdateSerializer(serializers.ModelSerializer):
             instance.reason = validated.get('reason') or instance.reason 
             instance.expires_at = None 
             instance.approved_at = None 
-            update_fields += ['reason', 'expires_at', 'approved_at']
+            update_fields += ['reason', 'expires_at', 'approved_at', 'updated_at']
             
         instance.save(update_fields=update_fields)         
         return instance
