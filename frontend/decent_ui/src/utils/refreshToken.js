@@ -1,5 +1,5 @@
 import { isTokenExpired } from "./tokenExpiration";
-
+const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/+$/, '');
 
 /**
  * refreshAccessToken
@@ -30,7 +30,7 @@ export const refreshAccessToken = async (refreshToken) => {
     }
 
     // Attempt refresh via backend
-    const res = await fetch('http://localhost:8000/api/token/refresh/', {
+    const res = await fetch(`${BASE_URL}/token/refresh/`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         credentials: 'include',
